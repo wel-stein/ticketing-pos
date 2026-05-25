@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import Terminal from './pages/Terminal'
 import Checkout from './pages/Checkout'
@@ -9,7 +9,7 @@ import Support from './pages/Support'
 export default function App() {
   return (
     <CartProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<Terminal />} />
           <Route path="/checkout" element={<Checkout />} />
@@ -17,7 +17,7 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/support" element={<Support />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </CartProvider>
   )
 }
