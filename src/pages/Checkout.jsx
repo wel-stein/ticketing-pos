@@ -129,6 +129,11 @@ function buildReceiptHTML(cart, subtotal, tax, grandTotal, promoApplied, cashRec
     font-size: 11px;
     color: #333;
   }
+  @media print {
+    html, body { height: auto; }
+    body { page-break-inside: avoid; break-inside: avoid; }
+    table, tr { page-break-inside: avoid; break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -226,7 +231,18 @@ function printReceipt(html) {
   printWindow.document.close()
   printWindow.focus()
   printWindow.onafterprint = () => printWindow.close()
-  setTimeout(() => printWindow.print(), 250)
+  setTimeout(() => {
+    // The Star TSP100 raster driver ignores "size: 80mm auto" and paginates
+    // against its fixed default page length, auto-cutting at every page break.
+    // Pin the page height to the rendered content so the job is one page and
+    // the printer only cuts once, at the end of the receipt.
+    const doc = printWindow.document
+    const contentHeightMm = Math.ceil((doc.body.scrollHeight * 25.4) / 96) + 2
+    const pageStyle = doc.createElement('style')
+    pageStyle.textContent = `@page { size: 80mm ${contentHeightMm}mm; margin: 0; }`
+    doc.head.appendChild(pageStyle)
+    printWindow.print()
+  }, 250)
 }
 
 export default function Checkout() {
