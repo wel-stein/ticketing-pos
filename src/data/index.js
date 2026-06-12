@@ -4,28 +4,23 @@
 export const CURRENT_USER = { id: 'STF-004', name: 'John Doe', initials: 'JD', role: 'Counter Staff' }
 export const CURRENT_COUNTER = 'KL Sentral (Counter 04)'
 
-export const COUNTERS = [
-  'KL Sentral (Counter 04)',
-  'TBS (Counter 09)',
-  'Penang Sentral (Counter 12)',
+export const SEED_COUNTERS = [
+  { id: 'c1', code: 'C04', name: 'KL Sentral (Counter 04)', location: 'KL Sentral Station, Kuala Lumpur', status: 'Active' },
+  { id: 'c2', code: 'C09', name: 'TBS (Counter 09)', location: 'Terminal Bersepadu Selatan, Kuala Lumpur', status: 'Active' },
+  { id: 'c3', code: 'C12', name: 'Penang Sentral (Counter 12)', location: 'Penang Sentral, Butterworth', status: 'Active' },
 ]
 
 export const CATEGORIES = ['Souvenirs', 'Mini Bus Models', 'Manja SIM', 'Promotional Items', 'Others']
 
 export const UNITS_OF_MEASURE = ['Unit', 'Pack', 'Box', 'Set']
 
-export const SUPPLIERS = [
-  'Manja Merchandise Sdn Bhd',
-  'Pelangi Gifts Trading',
-  'TeleManja Distribution',
-  'Sunway Premium Supplies',
-]
-
 export const STOCK_OUT_REASONS = [
   'Damaged', 'Expired', 'Promotion Giveaway', 'Internal Usage', 'Lost Item', 'Stock Adjustment', 'Others',
 ]
 
-export const RETURN_TYPES = ['Customer Return', 'Counter Return', 'Supplier Return']
+// Transfer Out sends stock away from the counter (to HQ or another counter)
+// and decreases the balance; the other two types bring stock back in.
+export const RETURN_TYPES = ['Customer Return', 'Counter Return', 'Transfer Out']
 
 const daysAgo = n => {
   const d = new Date()
@@ -38,7 +33,7 @@ export const SEED_PRODUCTS = [
     id: 'p1', sku: 'MBM-001', name: 'Mini Bus Model (Classic Red)',
     description: 'Die-cast 1:64 scale model of the classic ManjaLink city bus.',
     category: 'Mini Bus Models', price: 35.00, stock: 142, minStock: 20, maxStock: 200,
-    supplier: 'Manja Merchandise Sdn Bhd', status: 'Active', uom: 'Unit',
+    counter: 'KL Sentral (Counter 04)', status: 'Active', uom: 'Unit',
     createdDate: daysAgo(160), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=400&fit=crop&q=80',
   },
@@ -46,7 +41,7 @@ export const SEED_PRODUCTS = [
     id: 'p2', sku: 'MBM-002', name: 'Mini Bus Model (Double Decker LTD)',
     description: 'Limited edition double-decker model with display case.',
     category: 'Mini Bus Models', price: 59.00, stock: 8, minStock: 10, maxStock: 50,
-    supplier: 'Manja Merchandise Sdn Bhd', status: 'Active', uom: 'Unit',
+    counter: 'KL Sentral (Counter 04)', status: 'Active', uom: 'Unit',
     createdDate: daysAgo(120), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=400&fit=crop&q=80',
   },
@@ -54,7 +49,7 @@ export const SEED_PRODUCTS = [
     id: 'p3', sku: 'SIM-001', name: 'Manja SIM Starter Pack',
     description: 'Prepaid starter pack with RM5 preloaded credit.',
     category: 'Manja SIM', price: 10.00, stock: 310, minStock: 50, maxStock: 500,
-    supplier: 'TeleManja Distribution', status: 'Active', uom: 'Pack',
+    counter: 'KL Sentral (Counter 04)', status: 'Active', uom: 'Pack',
     createdDate: daysAgo(140), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1587749090881-1ff6c9cb3c6b?w=400&h=400&fit=crop&q=80',
   },
@@ -62,7 +57,7 @@ export const SEED_PRODUCTS = [
     id: 'p4', sku: 'SIM-002', name: 'Manja SIM Tourist 15GB',
     description: '15GB / 30-day tourist data SIM with unlimited ManjaLink rides info.',
     category: 'Manja SIM', price: 30.00, stock: 96, minStock: 30, maxStock: 300,
-    supplier: 'TeleManja Distribution', status: 'Active', uom: 'Pack',
+    counter: 'TBS (Counter 09)', status: 'Active', uom: 'Pack',
     createdDate: daysAgo(140), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=400&fit=crop&q=80',
   },
@@ -70,7 +65,7 @@ export const SEED_PRODUCTS = [
     id: 'p5', sku: 'SOU-001', name: 'ManjaLink Keychain',
     description: 'Metal keychain with embossed ManjaLink logo.',
     category: 'Souvenirs', price: 8.00, stock: 210, minStock: 40, maxStock: 300,
-    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Unit',
+    counter: 'Penang Sentral (Counter 12)', status: 'Active', uom: 'Unit',
     createdDate: daysAgo(90), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=400&fit=crop&q=80',
   },
@@ -78,7 +73,7 @@ export const SEED_PRODUCTS = [
     id: 'p6', sku: 'SOU-002', name: 'ManjaLink Ceramic Mug',
     description: 'Matte black 350ml ceramic mug with route map print.',
     category: 'Souvenirs', price: 18.00, stock: 89, minStock: 20, maxStock: 150,
-    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Unit',
+    counter: 'KL Sentral (Counter 04)', status: 'Active', uom: 'Unit',
     createdDate: daysAgo(90), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&h=400&fit=crop&q=80',
   },
@@ -86,7 +81,7 @@ export const SEED_PRODUCTS = [
     id: 'p7', sku: 'SOU-003', name: 'Enamel Pin Set (5pk)',
     description: 'Set of five collectible enamel pins of ManjaLink landmarks.',
     category: 'Souvenirs', price: 22.00, stock: 0, minStock: 15, maxStock: 250,
-    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Set',
+    counter: 'KL Sentral (Counter 04)', status: 'Active', uom: 'Set',
     createdDate: daysAgo(75), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1531171673193-06cc9f0dd2b4?w=400&h=400&fit=crop&q=80',
   },
@@ -94,7 +89,7 @@ export const SEED_PRODUCTS = [
     id: 'p8', sku: 'PRM-001', name: 'ManjaLink Canvas Tote Bag',
     description: 'Promotional canvas tote bag — campaign giveaway item.',
     category: 'Promotional Items', price: 15.00, stock: 53, minStock: 20, maxStock: 100,
-    supplier: 'Sunway Premium Supplies', status: 'Active', uom: 'Unit',
+    counter: 'TBS (Counter 09)', status: 'Active', uom: 'Unit',
     createdDate: daysAgo(40), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1597484662317-9bd7bdda2907?w=400&h=400&fit=crop&q=80',
   },
@@ -102,7 +97,7 @@ export const SEED_PRODUCTS = [
     id: 'p9', sku: 'PRM-002', name: 'Lanyard + Card Holder',
     description: 'Lanyard with transparent ManjaLink travel card holder.',
     category: 'Promotional Items', price: 12.00, stock: 17, minStock: 20, maxStock: 200,
-    supplier: 'Sunway Premium Supplies', status: 'Active', uom: 'Unit',
+    counter: 'KL Sentral (Counter 04)', status: 'Active', uom: 'Unit',
     createdDate: daysAgo(40), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&h=400&fit=crop&q=80',
   },
@@ -110,7 +105,7 @@ export const SEED_PRODUCTS = [
     id: 'p10', sku: 'OTH-001', name: 'Travel Card Sticker Pack',
     description: 'Decorative sticker pack for ManjaLink travel cards.',
     category: 'Others', price: 5.00, stock: 0, minStock: 25, maxStock: 400,
-    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Pack',
+    counter: 'KL Sentral (Counter 04)', status: 'Active', uom: 'Pack',
     createdDate: daysAgo(30), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1572375992501-4b0892d50c69?w=400&h=400&fit=crop&q=80',
   },
@@ -118,7 +113,7 @@ export const SEED_PRODUCTS = [
     id: 'p11', sku: 'OTH-002', name: 'ManjaLink Umbrella',
     description: 'Compact foldable umbrella in ManjaLink livery.',
     category: 'Others', price: 25.00, stock: 34, minStock: 10, maxStock: 100,
-    supplier: 'Sunway Premium Supplies', status: 'Active', uom: 'Unit',
+    counter: 'Penang Sentral (Counter 12)', status: 'Active', uom: 'Unit',
     createdDate: daysAgo(2), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1530653333484-8e3c89cd2f45?w=400&h=400&fit=crop&q=80',
   },
@@ -126,7 +121,7 @@ export const SEED_PRODUCTS = [
     id: 'p12', sku: 'SOU-004', name: 'Knit Fan Scarf (Retired)',
     description: 'Retired design — kept for record purposes only.',
     category: 'Souvenirs', price: 24.00, stock: 12, minStock: 10, maxStock: 60,
-    supplier: 'Pelangi Gifts Trading', status: 'Inactive', uom: 'Unit',
+    counter: 'KL Sentral (Counter 04)', status: 'Inactive', uom: 'Unit',
     createdDate: daysAgo(200), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&h=400&fit=crop&q=80',
   },
@@ -136,13 +131,13 @@ export const SEED_MOVEMENTS = [
   {
     id: 'm1', no: 'SI-0001', type: 'IN', date: daysAgo(14), productId: 'p1',
     sku: 'MBM-001', productName: 'Mini Bus Model (Classic Red)', qty: 60, balanceAfter: 142,
-    supplier: 'Manja Merchandise Sdn Bhd', refNo: 'PO-2026-0412', remarks: 'Scheduled replenishment',
+    refNo: 'PO-2026-0412', remarks: 'Scheduled replenishment',
     createdBy: 'Karen Khor', counter: 'KL Sentral (Counter 04)',
   },
   {
     id: 'm2', no: 'SI-0002', type: 'IN', date: daysAgo(10), productId: 'p3',
     sku: 'SIM-001', productName: 'Manja SIM Starter Pack', qty: 150, balanceAfter: 310,
-    supplier: 'TeleManja Distribution', refNo: 'PO-2026-0428', remarks: '',
+    refNo: 'PO-2026-0428', remarks: '',
     createdBy: 'John Doe', counter: 'KL Sentral (Counter 04)',
   },
   {

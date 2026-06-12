@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../context/StoreContext'
-import { COUNTERS } from '../data'
 import { fmtRM, fmtDate } from '../utils/format'
 import { exportToExcel } from '../utils/exportExcel'
 import SideNav from '../components/SideNav'
@@ -20,7 +19,7 @@ function rangeBounds(from, to) {
 function movementDelta(m) {
   if (m.type === 'IN') return m.qty
   if (m.type === 'OUT' || m.type === 'SALE') return -m.qty
-  if (m.type === 'RETURN') return m.returnType === 'Supplier Return' ? -m.qty : m.qty
+  if (m.type === 'RETURN') return m.returnType === 'Transfer Out' ? -m.qty : m.qty
   return 0
 }
 
@@ -96,7 +95,7 @@ function ReportTable({ columns, rows, footer, emptyText }) {
 }
 
 function StockBalanceReport() {
-  const { products, movements } = useStore()
+  const { products, movements, counters } = useStore()
   const [filters, setFilters] = useState({ from: '', to: '', counter: '', productId: '' })
 
   const rows = useMemo(() => {
@@ -152,7 +151,7 @@ function StockBalanceReport() {
         <Filter label="Counter Location">
           <select className={FIELD_CLS} value={filters.counter} onChange={e => setFilters(f => ({ ...f, counter: e.target.value }))}>
             <option value="">All Counters</option>
-            {COUNTERS.map(c => <option key={c}>{c}</option>)}
+            {counters.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
         </Filter>
         <Filter label="Item">
@@ -186,7 +185,7 @@ function StockBalanceReport() {
 }
 
 function SalesReport() {
-  const { transactions, products } = useStore()
+  const { transactions, products, counters } = useStore()
   const [filters, setFilters] = useState({ from: '', to: '', counter: '', payment: '', productId: '' })
 
   const rows = useMemo(() => {
@@ -235,7 +234,7 @@ function SalesReport() {
           <div className="grid grid-cols-2 gap-2">
             <select className={FIELD_CLS} value={filters.counter} onChange={e => setFilters(f => ({ ...f, counter: e.target.value }))}>
               <option value="">All Counters</option>
-              {COUNTERS.map(c => <option key={c}>{c}</option>)}
+              {counters.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
             <select className={FIELD_CLS} value={filters.payment} onChange={e => setFilters(f => ({ ...f, payment: e.target.value }))}>
               <option value="">All Payments</option>
