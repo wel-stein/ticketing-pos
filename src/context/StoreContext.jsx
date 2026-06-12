@@ -1,19 +1,20 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import {
-  SEED_PRODUCTS, SEED_TRANSACTIONS, SEED_MOVEMENTS,
+  SEED_PRODUCTS, SEED_TRANSACTIONS, SEED_MOVEMENTS, SEED_COUNTERS,
   CURRENT_USER, CURRENT_COUNTER,
 } from '../data'
 
 const StoreContext = createContext(null)
 
-const STORAGE_KEY = 'manjalink-store-v1'
+// v2: suppliers replaced by counters (older v1 state is incompatible).
+const STORAGE_KEY = 'manjalink-store-v2'
 
 function loadInitial() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (parsed.products && parsed.transactions && parsed.movements) return parsed
+      if (parsed.products && parsed.transactions && parsed.movements && parsed.counters) return parsed
     }
   } catch {
     // Corrupted persisted state — fall back to seed data.
@@ -22,6 +23,7 @@ function loadInitial() {
     products: SEED_PRODUCTS,
     transactions: SEED_TRANSACTIONS,
     movements: SEED_MOVEMENTS,
+    counters: SEED_COUNTERS,
     auditLog: [],
   }
 }
@@ -91,7 +93,43 @@ export function StoreProvider({ children }) {
     })
   }, [])
 
-  const stockIn = useCallback(({ productId, qty, supplier, refNo, remarks, date, attachmentName }) => {
+  const saveCounter = useCallback((counter) => {
+    setStore(prev => {
+      const existing = prev.counters.find(c => c.id === counter.id)
+      if (existing) {
+        // Cascade a rename to products assigned to this counter; historical
+        // movements and transactions keep the name they were recorded under.
+        const products = existing.name !== counter.name
+          ? prev.products.map(p => (p.counter === existing.name ? { ...p, counter: counter.name } : p))
+          : prev.products
+        return {
+          ...prev,
+          products,
+          counters: prev.counters.map(c => (c.id === counter.id ? { ...c, ...counter } : c)),
+          auditLog: [audit('COUNTER_UPDATED', `${counter.code} — ${counter.name}`), ...prev.auditLog],
+        }
+      }
+      return {
+        ...prev,
+        counters: [...prev.counters, { ...counter, id: counter.id || `c${Date.now()}`, status: counter.status || 'Active' }],
+        auditLog: [audit('COUNTER_CREATED', `${counter.code} — ${counter.name}`), ...prev.auditLog],
+      }
+    })
+  }, [])
+
+  const setCounterStatus = useCallback((id, status) => {
+    setStore(prev => {
+      const counter = prev.counters.find(c => c.id === id)
+      if (!counter) return prev
+      return {
+        ...prev,
+        counters: prev.counters.map(c => (c.id === id ? { ...c, status } : c)),
+        auditLog: [audit('COUNTER_STATUS', `${counter.code} set to ${status}`), ...prev.auditLog],
+      }
+    })
+  }, [])
+
+  const stockIn = useCallback(({ productId, qty, counter, refNo, remarks, date, attachmentName }) => {
     setStore(prev => {
       const product = prev.products.find(p => p.id === productId)
       if (!product || qty <= 0) return prev
@@ -99,8 +137,8 @@ export function StoreProvider({ children }) {
       const movement = {
         id: `m${Date.now()}`, no: nextDocNo(prev.movements, 'SI'), type: 'IN',
         date: date || new Date().toISOString(), productId, sku: product.sku, productName: product.name,
-        qty, balanceAfter, supplier, refNo, remarks, attachmentName,
-        createdBy: CURRENT_USER.name, counter: CURRENT_COUNTER,
+        qty, balanceAfter, refNo, remarks, attachmentName,
+        createdBy: CURRENT_USER.name, counter: counter || CURRENT_COUNTER,
       }
       return {
         ...prev,
@@ -138,17 +176,17 @@ export function StoreProvider({ children }) {
   }, [store.products])
 
   const returnStock = useCallback(({ productId, qty, returnType, reason, remarks, date }) => {
-    // Supplier returns leave the counter (stock down); customer/counter
-    // returns come back in (stock up) — SRS #F002 business rules.
+    // Transfer Out sends stock away from the counter (stock down); customer
+    // and counter returns come back in (stock up).
     const current = store.products.find(p => p.id === productId)
     if (!current || qty <= 0) return 'Select a product and enter a valid quantity.'
-    if (returnType === 'Supplier Return' && qty > current.stock) {
-      return 'Quantity Returned cannot exceed Current Stock for a Supplier Return.'
+    if (returnType === 'Transfer Out' && qty > current.stock) {
+      return 'Quantity Returned cannot exceed Current Stock for a Transfer Out.'
     }
     setStore(prev => {
       const product = prev.products.find(p => p.id === productId)
       if (!product) return prev
-      const delta = returnType === 'Supplier Return' ? -qty : qty
+      const delta = returnType === 'Transfer Out' ? -qty : qty
       if (product.stock + delta < 0) return prev
       const balanceAfter = product.stock + delta
       const movement = {
@@ -245,9 +283,12 @@ export function StoreProvider({ children }) {
     products: store.products,
     transactions: store.transactions,
     movements: store.movements,
+    counters: store.counters,
     auditLog: store.auditLog,
     saveProduct,
     setProductStatus,
+    saveCounter,
+    setCounterStatus,
     stockIn,
     stockOut,
     returnStock,

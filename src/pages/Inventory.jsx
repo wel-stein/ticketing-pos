@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../context/StoreContext'
-import { CATEGORIES, SUPPLIERS, UNITS_OF_MEASURE, STOCK_OUT_REASONS, RETURN_TYPES } from '../data'
+import { CATEGORIES, UNITS_OF_MEASURE, STOCK_OUT_REASONS, RETURN_TYPES, CURRENT_COUNTER } from '../data'
 import { fmtRM, fmtDate, fmtDateTime } from '../utils/format'
 import SideNav from '../components/SideNav'
 import TopBar from '../components/TopBar'
@@ -71,11 +71,12 @@ function Field({ label, children, required }) {
 
 const EMPTY_PRODUCT_FORM = {
   id: null, name: '', description: '', sku: '', category: CATEGORIES[0],
-  price: '', stock: '', minStock: '', supplier: SUPPLIERS[0], status: 'Active',
+  price: '', stock: '', minStock: '', counter: CURRENT_COUNTER, status: 'Active',
   uom: UNITS_OF_MEASURE[0], image: '',
 }
 
 function ProductDrawer({ initial, onClose, onSave }) {
+  const { counters } = useStore()
   const [form, setForm] = useState(initial)
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
   const isEdit = Boolean(form.id)
@@ -146,9 +147,11 @@ function ProductDrawer({ initial, onClose, onSave }) {
               <input type="number" className={`${FIELD_CLS} font-mono`} placeholder="10" value={form.minStock} onChange={set('minStock')} />
             </Field>
           </div>
-          <Field label="Supplier">
-            <select className={FIELD_CLS} value={form.supplier} onChange={set('supplier')}>
-              {SUPPLIERS.map(s => <option key={s}>{s}</option>)}
+          <Field label="Counter">
+            <select className={FIELD_CLS} value={form.counter} onChange={set('counter')}>
+              {counters.filter(c => c.status === 'Active' || c.name === form.counter).map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
             </select>
           </Field>
           <Field label="Status">
@@ -278,7 +281,7 @@ function DashboardTab({ onEdit, onAdd }) {
                       </div>
                       <div className="min-w-0">
                         <span className="font-medium text-on-surface block truncate">{item.name}</span>
-                        <span className="text-label-sm font-mono text-on-surface-variant">{item.uom} · {item.supplier}</span>
+                        <span className="text-label-sm font-mono text-on-surface-variant">{item.uom} · {item.counter}</span>
                       </div>
                     </div>
                   </td>
@@ -380,8 +383,8 @@ function MovementHistoryTable({ title, movements, columns }) {
 }
 
 function StockInTab() {
-  const { products, movements, stockIn } = useStore()
-  const [form, setForm] = useState({ productId: '', qty: '', supplier: SUPPLIERS[0], refNo: '', remarks: '', date: todayInput(), attachmentName: '' })
+  const { products, movements, counters, stockIn } = useStore()
+  const [form, setForm] = useState({ productId: '', qty: '', counter: CURRENT_COUNTER, refNo: '', remarks: '', date: todayInput(), attachmentName: '' })
   const [savedNo, setSavedNo] = useState(null)
 
   const product = products.find(p => p.id === form.productId)
@@ -394,11 +397,11 @@ function StockInTab() {
   const submit = () => {
     if (!product || qty <= 0) return
     stockIn({
-      productId: product.id, qty, supplier: form.supplier, refNo: form.refNo,
+      productId: product.id, qty, counter: form.counter, refNo: form.refNo,
       remarks: form.remarks, date: new Date(form.date).toISOString(), attachmentName: form.attachmentName,
     })
     setSavedNo(docNo)
-    setForm({ productId: '', qty: '', supplier: SUPPLIERS[0], refNo: '', remarks: '', date: todayInput(), attachmentName: '' })
+    setForm({ productId: '', qty: '', counter: CURRENT_COUNTER, refNo: '', remarks: '', date: todayInput(), attachmentName: '' })
   }
 
   const history = movements.filter(m => m.type === 'IN')
@@ -443,9 +446,11 @@ function StockInTab() {
           <Field label="New Stock Balance">
             <input className={`${FIELD_CLS} font-mono`} value={product && qty > 0 ? product.stock + qty : ''} disabled />
           </Field>
-          <Field label="Supplier">
-            <select className={FIELD_CLS} value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))}>
-              {SUPPLIERS.map(s => <option key={s}>{s}</option>)}
+          <Field label="Counter">
+            <select className={FIELD_CLS} value={form.counter} onChange={e => setForm(f => ({ ...f, counter: e.target.value }))}>
+              {counters.filter(c => c.status === 'Active').map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
             </select>
           </Field>
           <Field label="Reference No.">
@@ -481,7 +486,7 @@ function StockInTab() {
           { label: 'Date', render: m => fmtDate(m.date) },
           { label: 'Product', render: m => <span>{m.productName} <span className="font-mono text-label-sm text-on-surface-variant">({m.sku})</span></span> },
           { label: 'Quantity', render: m => <span className="font-mono text-secondary">+{m.qty}</span> },
-          { label: 'Supplier', render: m => m.supplier ?? '—' },
+          { label: 'Counter', render: m => m.counter ?? '—' },
           { label: 'Created By', render: m => m.createdBy },
         ]}
       />
@@ -600,8 +605,8 @@ function ReturnStockTab() {
 
   const product = products.find(p => p.id === form.productId)
   const qty = parseInt(form.qty) || 0
-  const isSupplierReturn = form.returnType === 'Supplier Return'
-  const exceeds = isSupplierReturn && product && qty > product.stock
+  const isTransferOut = form.returnType === 'Transfer Out'
+  const exceeds = isTransferOut && product && qty > product.stock
   const docNo = useMemo(() => {
     const max = movements.filter(m => m.no?.startsWith('RT')).reduce((a, m) => Math.max(a, parseInt(m.no.slice(3), 10) || 0), 0)
     return `RT-${String(max + 1).padStart(4, '0')}`
@@ -657,14 +662,14 @@ function ReturnStockTab() {
               placeholder="0" value={form.qty}
               onChange={e => setForm(f => ({ ...f, qty: e.target.value }))}
             />
-            {exceeds && <p className="text-error text-label-sm font-mono">Supplier Return cannot exceed Current Stock ({product.stock}).</p>}
+            {exceeds && <p className="text-error text-label-sm font-mono">Transfer Out cannot exceed Current Stock ({product.stock}).</p>}
           </Field>
           <Field label="Return Type" required>
             <select className={FIELD_CLS} value={form.returnType} onChange={e => setForm(f => ({ ...f, returnType: e.target.value }))}>
               {RETURN_TYPES.map(r => <option key={r}>{r}</option>)}
             </select>
             <p className="text-label-sm font-mono text-on-surface-variant">
-              {isSupplierReturn ? 'Stock balance will decrease.' : 'Stock balance will increase.'}
+              {isTransferOut ? 'Stock balance will decrease.' : 'Stock balance will increase.'}
             </p>
           </Field>
           <Field label="Reason">
@@ -692,7 +697,7 @@ function ReturnStockTab() {
           { label: 'Return No.', render: m => <span className="font-mono text-primary">{m.no}</span> },
           { label: 'Date', render: m => fmtDate(m.date) },
           { label: 'Product', render: m => <span>{m.productName} <span className="font-mono text-label-sm text-on-surface-variant">({m.sku})</span></span> },
-          { label: 'Quantity', render: m => <span className={`font-mono ${m.returnType === 'Supplier Return' ? 'text-error' : 'text-secondary'}`}>{m.returnType === 'Supplier Return' ? '-' : '+'}{m.qty}</span> },
+          { label: 'Quantity', render: m => <span className={`font-mono ${m.returnType === 'Transfer Out' ? 'text-error' : 'text-secondary'}`}>{m.returnType === 'Transfer Out' ? '-' : '+'}{m.qty}</span> },
           { label: 'Return Type', render: m => m.returnType ?? '—' },
           { label: 'Reason', render: m => m.reason || '—' },
           { label: 'Created By', render: m => m.createdBy },
@@ -716,11 +721,11 @@ function MovementsTab() {
         { label: 'Date & Time', render: m => fmtDateTime(m.date) },
         { label: 'Product', render: m => <span>{m.productName} <span className="font-mono text-label-sm text-on-surface-variant">({m.sku})</span></span> },
         { label: 'Qty', render: m => {
-          const negative = m.type === 'OUT' || m.type === 'SALE' || m.returnType === 'Supplier Return'
+          const negative = m.type === 'OUT' || m.type === 'SALE' || m.returnType === 'Transfer Out'
           return <span className={`font-mono ${negative ? 'text-error' : 'text-secondary'}`}>{negative ? '-' : '+'}{m.qty}</span>
         } },
         { label: 'Balance', render: m => <span className="font-mono">{m.balanceAfter}</span> },
-        { label: 'Detail', render: m => m.reason || m.returnType || m.supplier || '—' },
+        { label: 'Detail', render: m => m.reason || m.returnType || m.counter || '—' },
         { label: 'By', render: m => m.createdBy },
       ]}
     />

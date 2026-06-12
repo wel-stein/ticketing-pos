@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 const NAV_ITEMS = [
   { path: '/', icon: 'point_of_sale', label: 'Sales' },
   { path: '/inventory', icon: 'inventory_2', label: 'Inventory' },
+  { path: '/counters', icon: 'storefront', label: 'Counters' },
   { path: '/reports', icon: 'monitoring', label: 'Reports' },
   { path: '/history', icon: 'history', label: 'History' },
 ]
