@@ -17,7 +17,7 @@ const NOTIFICATIONS_DATA = [
     iconColor: 'text-tertiary',
     iconBg: 'bg-tertiary-fixed/40',
     title: 'Low Stock Alert',
-    body: 'MT-ACC-005 has only 3 units remaining.',
+    body: 'MBM-002 has only 8 units remaining.',
     time: '2m ago',
     unread: true,
   },
@@ -27,7 +27,7 @@ const NOTIFICATIONS_DATA = [
     iconColor: 'text-secondary',
     iconBg: 'bg-secondary-container/50',
     title: 'Shift Summary Ready',
-    body: 'Morning shift: 12 transactions · $1,842.50 total.',
+    body: 'Morning shift: 12 transactions · RM1,842.50 total.',
     time: '1h ago',
     unread: true,
   },
@@ -161,11 +161,11 @@ function SettingsDropdown({ onClose }) {
       <div className="px-5 py-3.5 border-t border-outline-variant bg-surface-container-low grid grid-cols-2 gap-x-4">
         <div className="flex flex-col gap-0.5">
           <span className="font-mono text-[10px] text-outline uppercase tracking-wider">Currency</span>
-          <span className="text-body-md font-semibold text-on-surface">USD ($)</span>
+          <span className="text-body-md font-semibold text-on-surface">MYR (RM)</span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="font-mono text-[10px] text-outline uppercase tracking-wider">Printer</span>
-          <span className="text-body-md font-semibold text-on-surface truncate">Epson TM-T88</span>
+          <span className="text-body-md font-semibold text-on-surface truncate">Star TSP100</span>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ function ProfileDropdown({ onClose }) {
 
 /**
  * Props:
- *  brand       – show "TicketPro POS" logo on the left
+ *  brand       – show "ManjaLink POS" logo on the left
  *  pageTitle   – show a page-level h1 heading on the left
  *  back        – { to, label } show a back-navigation button
  *  showSearch  – show inline search input
@@ -298,7 +298,7 @@ export default function TopBar({
         )}
 
         {brand && (
-          <span className="text-title-lg font-bold text-primary">TicketPro POS</span>
+          <span className="text-title-lg font-bold text-primary">ManjaLink POS</span>
         )}
 
         {brand && pageTitle && (

@@ -1,173 +1,221 @@
-export const CATEGORIES = ['All Items', 'Apparel', 'Souvenirs', 'Media', 'Accessories']
+// ManjaLink Counter Inventory and Sales System — seed data
+// (SRS HISB/CR/00130: merchandise sales at ManjaLink counters)
 
-export const PRODUCTS = [
+export const CURRENT_USER = { id: 'STF-004', name: 'John Doe', initials: 'JD', role: 'Counter Staff' }
+export const CURRENT_COUNTER = 'KL Sentral (Counter 04)'
+
+export const COUNTERS = [
+  'KL Sentral (Counter 04)',
+  'TBS (Counter 09)',
+  'Penang Sentral (Counter 12)',
+]
+
+export const CATEGORIES = ['Souvenirs', 'Mini Bus Models', 'Manja SIM', 'Promotional Items', 'Others']
+
+export const UNITS_OF_MEASURE = ['Unit', 'Pack', 'Box', 'Set']
+
+export const SUPPLIERS = [
+  'Manja Merchandise Sdn Bhd',
+  'Pelangi Gifts Trading',
+  'TeleManja Distribution',
+  'Sunway Premium Supplies',
+]
+
+export const STOCK_OUT_REASONS = [
+  'Damaged', 'Expired', 'Promotion Giveaway', 'Internal Usage', 'Lost Item', 'Stock Adjustment', 'Others',
+]
+
+export const RETURN_TYPES = ['Customer Return', 'Counter Return', 'Supplier Return']
+
+const daysAgo = n => {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return d.toISOString()
+}
+
+export const SEED_PRODUCTS = [
   {
-    id: 'p1', sku: 'TSH-004-WHT', name: 'Classic Tour Tee',
-    price: 35.00, category: 'Apparel', stock: 142, maxStock: 200,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
+    id: 'p1', sku: 'MBM-001', name: 'Mini Bus Model (Classic Red)',
+    description: 'Die-cast 1:64 scale model of the classic ManjaLink city bus.',
+    category: 'Mini Bus Models', price: 35.00, stock: 142, minStock: 20, maxStock: 200,
+    supplier: 'Manja Merchandise Sdn Bhd', status: 'Active', uom: 'Unit',
+    createdDate: daysAgo(160), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=400&fit=crop&q=80',
   },
   {
-    id: 'p2', sku: 'MUG-102-BLK', name: 'Matte Stealth Mug',
-    price: 18.00, category: 'Souvenirs', stock: 89, maxStock: 150,
-    image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
+    id: 'p2', sku: 'MBM-002', name: 'Mini Bus Model (Double Decker LTD)',
+    description: 'Limited edition double-decker model with display case.',
+    category: 'Mini Bus Models', price: 59.00, stock: 8, minStock: 10, maxStock: 50,
+    supplier: 'Manja Merchandise Sdn Bhd', status: 'Active', uom: 'Unit',
+    createdDate: daysAgo(120), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=400&fit=crop&q=80',
   },
   {
-    id: 'p3', sku: 'PST-882-ART', name: 'Abstract Horizon Poster',
-    price: 45.00, category: 'Media', stock: 34, maxStock: 100,
-    image: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
+    id: 'p3', sku: 'SIM-001', name: 'Manja SIM Starter Pack',
+    description: 'Prepaid starter pack with RM5 preloaded credit.',
+    category: 'Manja SIM', price: 10.00, stock: 310, minStock: 50, maxStock: 500,
+    supplier: 'TeleManja Distribution', status: 'Active', uom: 'Pack',
+    createdDate: daysAgo(140), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1587749090881-1ff6c9cb3c6b?w=400&h=400&fit=crop&q=80',
   },
   {
-    id: 'p4', sku: 'KEY-441-MET', name: 'Utility Nylon Keychain',
-    price: 12.00, category: 'Accessories', stock: 210, maxStock: 300,
+    id: 'p4', sku: 'SIM-002', name: 'Manja SIM Tourist 15GB',
+    description: '15GB / 30-day tourist data SIM with unlimited ManjaLink rides info.',
+    category: 'Manja SIM', price: 30.00, stock: 96, minStock: 30, maxStock: 300,
+    supplier: 'TeleManja Distribution', status: 'Active', uom: 'Pack',
+    createdDate: daysAgo(140), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=400&fit=crop&q=80',
+  },
+  {
+    id: 'p5', sku: 'SOU-001', name: 'ManjaLink Keychain',
+    description: 'Metal keychain with embossed ManjaLink logo.',
+    category: 'Souvenirs', price: 8.00, stock: 210, minStock: 40, maxStock: 300,
+    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Unit',
+    createdDate: daysAgo(90), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
   },
   {
-    id: 'p5', sku: 'VIN-009-LTD', name: 'LTD Edition Soundtrack',
-    price: 29.00, category: 'Media', stock: 8, maxStock: 50,
-    image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=400&h=400&fit=crop&q=80',
-    status: 'Low Stock',
+    id: 'p6', sku: 'SOU-002', name: 'ManjaLink Ceramic Mug',
+    description: 'Matte black 350ml ceramic mug with route map print.',
+    category: 'Souvenirs', price: 18.00, stock: 89, minStock: 20, maxStock: 150,
+    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Unit',
+    createdDate: daysAgo(90), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&h=400&fit=crop&q=80',
   },
   {
-    id: 'p6', sku: 'HUD-002-GRY', name: 'Signature Logo Hoodie',
-    price: 65.00, category: 'Apparel', stock: 67, maxStock: 120,
-    image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
-  },
-  {
-    id: 'p7', sku: 'HAT-115-BLK', name: 'Structured Snapback',
-    price: 28.00, category: 'Apparel', stock: 0, maxStock: 80,
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&h=400&fit=crop&q=80',
-    status: 'Out of Stock',
-  },
-  {
-    id: 'p8', sku: 'BOT-203-BLU', name: 'Insulated Water Bottle',
-    price: 32.00, category: 'Accessories', stock: 53, maxStock: 100,
-    image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
-  },
-  {
-    id: 'p9', sku: 'PIN-018-SET', name: 'Enamel Pin Set (5pk)',
-    price: 22.00, category: 'Accessories', stock: 156, maxStock: 250,
+    id: 'p7', sku: 'SOU-003', name: 'Enamel Pin Set (5pk)',
+    description: 'Set of five collectible enamel pins of ManjaLink landmarks.',
+    category: 'Souvenirs', price: 22.00, stock: 0, minStock: 15, maxStock: 250,
+    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Set',
+    createdDate: daysAgo(75), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1531171673193-06cc9f0dd2b4?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
   },
   {
-    id: 'p10', sku: 'SHT-007-BLK', name: 'Technical Running Shorts',
-    price: 42.00, category: 'Apparel', stock: 19, maxStock: 100,
-    image: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400&h=400&fit=crop&q=80',
-    status: 'Low Stock',
+    id: 'p8', sku: 'PRM-001', name: 'ManjaLink Canvas Tote Bag',
+    description: 'Promotional canvas tote bag — campaign giveaway item.',
+    category: 'Promotional Items', price: 15.00, stock: 53, minStock: 20, maxStock: 100,
+    supplier: 'Sunway Premium Supplies', status: 'Active', uom: 'Unit',
+    createdDate: daysAgo(40), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1597484662317-9bd7bdda2907?w=400&h=400&fit=crop&q=80',
   },
   {
-    id: 'p11', sku: 'BDG-003-EMB', name: 'Embroidered Patch Badge',
-    price: 15.00, category: 'Souvenirs', stock: 312, maxStock: 500,
-    image: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=400&fit=crop&q=80',
-    status: 'In Stock',
+    id: 'p9', sku: 'PRM-002', name: 'Lanyard + Card Holder',
+    description: 'Lanyard with transparent ManjaLink travel card holder.',
+    category: 'Promotional Items', price: 12.00, stock: 17, minStock: 20, maxStock: 200,
+    supplier: 'Sunway Premium Supplies', status: 'Active', uom: 'Unit',
+    createdDate: daysAgo(40), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&h=400&fit=crop&q=80',
   },
   {
-    id: 'p12', sku: 'SCF-001-YEL', name: 'Knit Fan Scarf',
-    price: 24.00, category: 'Apparel', stock: 0, maxStock: 60,
+    id: 'p10', sku: 'OTH-001', name: 'Travel Card Sticker Pack',
+    description: 'Decorative sticker pack for ManjaLink travel cards.',
+    category: 'Others', price: 5.00, stock: 0, minStock: 25, maxStock: 400,
+    supplier: 'Pelangi Gifts Trading', status: 'Active', uom: 'Pack',
+    createdDate: daysAgo(30), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1572375992501-4b0892d50c69?w=400&h=400&fit=crop&q=80',
+  },
+  {
+    id: 'p11', sku: 'OTH-002', name: 'ManjaLink Umbrella',
+    description: 'Compact foldable umbrella in ManjaLink livery.',
+    category: 'Others', price: 25.00, stock: 34, minStock: 10, maxStock: 100,
+    supplier: 'Sunway Premium Supplies', status: 'Active', uom: 'Unit',
+    createdDate: daysAgo(2), createdBy: 'Karen Khor',
+    image: 'https://images.unsplash.com/photo-1530653333484-8e3c89cd2f45?w=400&h=400&fit=crop&q=80',
+  },
+  {
+    id: 'p12', sku: 'SOU-004', name: 'Knit Fan Scarf (Retired)',
+    description: 'Retired design — kept for record purposes only.',
+    category: 'Souvenirs', price: 24.00, stock: 12, minStock: 10, maxStock: 60,
+    supplier: 'Pelangi Gifts Trading', status: 'Inactive', uom: 'Unit',
+    createdDate: daysAgo(200), createdBy: 'Karen Khor',
     image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&h=400&fit=crop&q=80',
-    status: 'Out of Stock',
   },
 ]
 
-export const INVENTORY_ITEMS = [
+export const SEED_MOVEMENTS = [
   {
-    id: 'i1', sku: 'MT-APP-001', name: 'Premium Cotton T-Shirt', category: 'Apparel',
-    stock: 142, maxStock: 200, price: 24.99,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=80&h=80&fit=crop&q=80',
+    id: 'm1', no: 'SI-0001', type: 'IN', date: daysAgo(14), productId: 'p1',
+    sku: 'MBM-001', productName: 'Mini Bus Model (Classic Red)', qty: 60, balanceAfter: 142,
+    supplier: 'Manja Merchandise Sdn Bhd', refNo: 'PO-2026-0412', remarks: 'Scheduled replenishment',
+    createdBy: 'Karen Khor', counter: 'KL Sentral (Counter 04)',
   },
   {
-    id: 'i2', sku: 'MT-ACC-042', name: 'Leather Tote Bag', category: 'Accessories',
-    stock: 12, maxStock: 80, price: 89.00,
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=80&h=80&fit=crop&q=80',
+    id: 'm2', no: 'SI-0002', type: 'IN', date: daysAgo(10), productId: 'p3',
+    sku: 'SIM-001', productName: 'Manja SIM Starter Pack', qty: 150, balanceAfter: 310,
+    supplier: 'TeleManja Distribution', refNo: 'PO-2026-0428', remarks: '',
+    createdBy: 'John Doe', counter: 'KL Sentral (Counter 04)',
   },
   {
-    id: 'i3', sku: 'MT-TEC-019', name: 'Wireless Headphones', category: 'Electronics',
-    stock: 0, maxStock: 50, price: 149.95,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=80&h=80&fit=crop&q=80',
+    id: 'm3', no: 'SO-0001', type: 'OUT', date: daysAgo(6), productId: 'p9',
+    sku: 'PRM-002', productName: 'Lanyard + Card Holder', qty: 30, balanceAfter: 17,
+    reason: 'Promotion Giveaway', remarks: 'Hari Raya campaign giveaway',
+    createdBy: 'John Doe', counter: 'KL Sentral (Counter 04)',
   },
   {
-    id: 'i4', sku: 'MT-STA-088', name: 'Hardcover Planner', category: 'Stationery',
-    stock: 64, maxStock: 160, price: 18.50,
-    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=80&h=80&fit=crop&q=80',
-  },
-  {
-    id: 'i5', sku: 'MT-APP-023', name: 'Signature Logo Hoodie', category: 'Apparel',
-    stock: 56, maxStock: 120, price: 65.00,
-    image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=80&h=80&fit=crop&q=80',
-  },
-  {
-    id: 'i6', sku: 'MT-ACC-067', name: 'Canvas Backpack', category: 'Accessories',
-    stock: 23, maxStock: 60, price: 52.00,
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=80&h=80&fit=crop&q=80',
-  },
-  {
-    id: 'i7', sku: 'MT-STA-091', name: 'Desk Organizer Set', category: 'Stationery',
-    stock: 0, maxStock: 40, price: 35.99,
-    image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=80&h=80&fit=crop&q=80',
-  },
-  {
-    id: 'i8', sku: 'MT-TEC-033', name: 'USB-C Hub 7-Port', category: 'Electronics',
-    stock: 18, maxStock: 100, price: 44.99,
-    image: 'https://images.unsplash.com/photo-1625723044792-44de16ccb4e9?w=80&h=80&fit=crop&q=80',
+    id: 'm4', no: 'RT-0001', type: 'RETURN', date: daysAgo(4), productId: 'p6',
+    sku: 'SOU-002', productName: 'ManjaLink Ceramic Mug', qty: 2, balanceAfter: 89,
+    returnType: 'Customer Return', reason: 'Wrong item purchased', remarks: '',
+    createdBy: 'John Doe', counter: 'KL Sentral (Counter 04)',
   },
 ]
 
-export const TRANSACTIONS = [
+export const SEED_TRANSACTIONS = [
   {
-    id: 'TX-88291', time: '14:23 PM', date: 'Today', itemCount: 4,
-    total: 124.50, subtotal: 114.50, tax: 10.00,
-    payment: { type: 'card', label: 'Visa •• 4242', icon: 'credit_card' },
-    status: 'Completed', staff: 'John Doe', counter: '04',
+    id: 'TX-88291', dateTime: daysAgo(0.2), status: 'Completed',
+    staff: 'John Doe', staffId: 'STF-004', counter: 'KL Sentral (Counter 04)',
+    payment: 'Credit Card', subtotal: 114.50, tax: 9.16, discount: 0, total: 123.66,
     items: [
-      { name: 'Premium Cotton Tee', sku: '002-1192-M', price: 45.00 },
-      { name: 'Limited Edition Cap', sku: '045-8821-OS', price: 32.00 },
-      { name: 'Heavyweight Hoodie', sku: '009-2101-L', price: 47.50 },
+      { id: 'p1', sku: 'MBM-001', name: 'Mini Bus Model (Classic Red)', qty: 2, unitPrice: 35.00 },
+      { id: 'p4', sku: 'SIM-002', name: 'Manja SIM Tourist 15GB', qty: 1, unitPrice: 30.00 },
+      { id: 'p9', sku: 'PRM-002', name: 'Lanyard + Card Holder', qty: 1, unitPrice: 12.00 },
+      { id: 'p6', sku: 'SOU-002', name: 'ManjaLink Ceramic Mug', qty: 1, unitPrice: 2.50 },
     ],
   },
   {
-    id: 'TX-88290', time: '13:45 PM', date: 'Today', itemCount: 1,
-    total: 28.00, subtotal: 25.93, tax: 2.07,
-    payment: { type: 'cash', label: 'Cash', icon: 'payments' },
-    status: 'Refunded', staff: 'M. Smith', counter: '09',
+    id: 'TX-88290', dateTime: daysAgo(0.3), status: 'Refunded',
+    staff: 'M. Smith', staffId: 'STF-009', counter: 'TBS (Counter 09)',
+    payment: 'Cash', subtotal: 18.00, tax: 1.44, discount: 0, total: 19.44,
+    cashReceived: 20.00, changeDue: 0.56,
+    refund: { reason: 'Defective item', date: daysAgo(0.1), by: 'M. Smith' },
     items: [
-      { name: 'Classic Tour Tee', sku: 'TSH-004-WHT', price: 28.00 },
+      { id: 'p6', sku: 'SOU-002', name: 'ManjaLink Ceramic Mug', qty: 1, unitPrice: 18.00 },
     ],
   },
   {
-    id: 'TX-88289', time: '12:12 PM', date: 'Today', itemCount: 12,
-    total: 456.20, subtotal: 422.41, tax: 33.79,
-    payment: { type: 'wallet', label: 'Apple Pay', icon: 'contactless' },
-    status: 'Completed', staff: 'K. Johnson', counter: '12',
+    id: 'TX-88289', dateTime: daysAgo(1.1), status: 'Completed',
+    staff: 'K. Johnson', staffId: 'STF-012', counter: 'Penang Sentral (Counter 12)',
+    payment: 'E-Wallet', subtotal: 130.00, tax: 10.40, discount: 0, total: 140.40,
     items: [
-      { name: 'Signature Logo Hoodie x3', sku: 'HUD-002-GRY', price: 195.00 },
-      { name: 'Matte Stealth Mug x4', sku: 'MUG-102-BLK', price: 72.00 },
-      { name: 'Enamel Pin Set x5', sku: 'PIN-018-SET', price: 110.00 },
+      { id: 'p3', sku: 'SIM-001', name: 'Manja SIM Starter Pack', qty: 4, unitPrice: 10.00 },
+      { id: 'p5', sku: 'SOU-001', name: 'ManjaLink Keychain', qty: 5, unitPrice: 8.00 },
+      { id: 'p8', sku: 'PRM-001', name: 'ManjaLink Canvas Tote Bag', qty: 2, unitPrice: 15.00 },
+      { id: 'p9', sku: 'PRM-002', name: 'Lanyard + Card Holder', qty: 1, unitPrice: 20.00 },
     ],
   },
   {
-    id: 'TX-88288', time: '10:55 AM', date: 'Today', itemCount: 2,
-    total: 55.00, subtotal: 50.93, tax: 4.07,
-    payment: { type: 'card', label: 'Mastercard •• 8812', icon: 'credit_card' },
-    status: 'Completed', staff: 'J. Doe', counter: '04',
+    id: 'TX-88288', dateTime: daysAgo(1.4), status: 'Cancelled',
+    staff: 'John Doe', staffId: 'STF-004', counter: 'KL Sentral (Counter 04)',
+    payment: 'Debit Card', subtotal: 59.00, tax: 4.72, discount: 0, total: 63.72,
     items: [
-      { name: 'Abstract Horizon Poster', sku: 'PST-882-ART', price: 45.00 },
-      { name: 'Utility Nylon Keychain', sku: 'KEY-441-MET', price: 12.00 },
+      { id: 'p2', sku: 'MBM-002', name: 'Mini Bus Model (Double Decker LTD)', qty: 1, unitPrice: 59.00 },
     ],
   },
   {
-    id: 'TX-88287', time: '09:30 AM', date: 'Today', itemCount: 3,
-    total: 87.50, subtotal: 81.02, tax: 6.48,
-    payment: { type: 'cash', label: 'Cash', icon: 'payments' },
-    status: 'Completed', staff: 'J. Doe', counter: '04',
+    id: 'TX-88287', dateTime: daysAgo(2.2), status: 'Completed',
+    staff: 'John Doe', staffId: 'STF-004', counter: 'KL Sentral (Counter 04)',
+    payment: 'Cash', subtotal: 81.00, tax: 6.48, discount: 0, total: 87.48,
+    cashReceived: 100.00, changeDue: 12.52,
     items: [
-      { name: 'LTD Edition Soundtrack', sku: 'VIN-009-LTD', price: 29.00 },
-      { name: 'Embroidered Patch Badge x3', sku: 'BDG-003-EMB', price: 45.00 },
+      { id: 'p11', sku: 'OTH-002', name: 'ManjaLink Umbrella', qty: 1, unitPrice: 25.00 },
+      { id: 'p1', sku: 'MBM-001', name: 'Mini Bus Model (Classic Red)', qty: 1, unitPrice: 35.00 },
+      { id: 'p6', sku: 'SOU-002', name: 'ManjaLink Ceramic Mug', qty: 1, unitPrice: 18.00 },
+      { id: 'p5', sku: 'SOU-001', name: 'ManjaLink Keychain', qty: 1, unitPrice: 3.00 },
     ],
   },
+]
+
+export const STAFF_LIST = [
+  { id: 'STF-004', name: 'John Doe' },
+  { id: 'STF-009', name: 'M. Smith' },
+  { id: 'STF-012', name: 'K. Johnson' },
 ]
