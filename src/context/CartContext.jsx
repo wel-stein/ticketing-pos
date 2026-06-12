@@ -11,10 +11,11 @@ export function CartProvider({ children }) {
       if (existing) {
         return prev.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
             : item
         )
       }
+      if (product.stock <= 0) return prev
       return [...prev, { ...product, quantity: 1 }]
     })
   }, [])
@@ -28,7 +29,7 @@ export function CartProvider({ children }) {
       prev
         .map(item => {
           if (item.id !== productId) return item
-          const newQty = item.quantity + delta
+          const newQty = Math.min(item.quantity + delta, item.stock)
           return newQty <= 0 ? null : { ...item, quantity: newQty }
         })
         .filter(Boolean)
