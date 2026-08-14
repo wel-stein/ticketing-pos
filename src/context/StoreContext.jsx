@@ -205,7 +205,7 @@ export function StoreProvider({ children }) {
     return null
   }, [store.products])
 
-  const recordSale = useCallback(({ items, subtotal, tax, discount, total, payment, cashReceived, changeDue }) => {
+  const recordSale = useCallback(({ items, subtotal, discount, total, payment, cashReceived, changeDue }) => {
     // Build the transaction outside the updater so it can be returned to the
     // caller (the updater itself runs asynchronously).
     const tx = {
@@ -213,7 +213,7 @@ export function StoreProvider({ children }) {
       dateTime: new Date().toISOString(),
       status: 'Completed',
       staff: CURRENT_USER.name, staffId: CURRENT_USER.id, counter: CURRENT_COUNTER,
-      payment, subtotal, tax, discount, total, cashReceived, changeDue,
+      payment, subtotal, discount, total, cashReceived, changeDue,
       items: items.map(i => ({ id: i.id, sku: i.sku, name: i.name, qty: i.quantity, unitPrice: i.price })),
     }
     setStore(prev => {

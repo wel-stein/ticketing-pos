@@ -69,7 +69,7 @@ function OrderItem({ item, onUpdate, onRemove }) {
 
 export default function Checkout() {
   const navigate = useNavigate()
-  const { cart, updateQuantity, removeFromCart, clearCart, subtotal, tax, total } = useCart()
+  const { cart, updateQuantity, removeFromCart, clearCart, subtotal, total } = useCart()
   const { recordSale } = useStore()
   const [selectedPayment, setSelectedPayment] = useState('Cash')
   const [promoCode, setPromoCode] = useState('')
@@ -110,7 +110,6 @@ export default function Checkout() {
       const tx = recordSale({
         items: cart,
         subtotal,
-        tax,
         discount,
         total: grandTotal,
         payment: selectedPayment,
@@ -176,10 +175,6 @@ export default function Checkout() {
                   <span className="font-semibold text-secondary">-{fmtRM(5)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-body-md">
-                <span className="text-on-surface-variant">Tax (8%)</span>
-                <span className="font-semibold">{fmtRM(tax)}</span>
-              </div>
               <div className="pt-4 border-t border-outline-variant flex justify-between items-end">
                 <span className="text-headline-md font-semibold">Net Amount Payable</span>
                 <div className="text-right">
@@ -383,7 +378,7 @@ export default function Checkout() {
 
       {/* Payment confirmation pop-up (SRS #F001) */}
       {completedTx && (
-        <div className="fixed inset-0 bg-on-surface/40 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-scrim/50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-surface-container-lowest p-10 rounded-3xl modal-shadow max-w-lg w-full mx-4 text-center animate-[fadeInScale_0.3s_ease]">
             <div className="w-24 h-24 bg-secondary-container rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="material-symbols-outlined text-secondary text-6xl" style={{ fontVariationSettings: "'FILL' 1" }}>

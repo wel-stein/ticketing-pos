@@ -118,10 +118,6 @@ export async function buildReceiptHTML(tx) {
       <td style="text-align:left;">Discount</td>
       <td style="text-align:right;">-RM${tx.discount.toFixed(2)}</td>
     </tr>` : ''}
-    <tr>
-      <td style="text-align:left;">Tax (8%)</td>
-      <td style="text-align:right;">RM${tx.tax.toFixed(2)}</td>
-    </tr>
   </table>
 
   <hr class="double-divider">

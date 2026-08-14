@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useTheme } from '../context/ThemeContext'
 
 const USER = {
   name: 'John Doe',
@@ -60,7 +61,7 @@ function NotificationsDropdown({ onClose }) {
   return (
     <div
       className="absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden z-50"
-      style={{ boxShadow: '0 8px 32px rgba(30,41,59,0.16)', animation: 'fadeInDown 0.15s ease' }}
+      style={{ boxShadow: 'var(--shadow-modal)', animation: 'fadeInDown 0.15s ease' }}
     >
       <div className="px-5 py-4 border-b border-outline-variant flex items-center justify-between bg-surface">
         <div className="flex items-center gap-2">
@@ -123,14 +124,26 @@ function NotificationsDropdown({ onClose }) {
   )
 }
 
+function ToggleSwitch({ on, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${on ? 'bg-primary' : 'bg-outline-variant'}`}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${on ? 'translate-x-5' : 'translate-x-0'}`} />
+    </button>
+  )
+}
+
 function SettingsDropdown({ onClose }) {
-  const [settings, setSettings] = useState({ sound: true, autoPrint: false, taxBreakdown: true })
+  const [settings, setSettings] = useState({ sound: true, autoPrint: false })
   const toggle = key => setSettings(s => ({ ...s, [key]: !s[key] }))
+  const { isDark, toggleTheme } = useTheme()
 
   return (
     <div
       className="absolute right-0 top-full mt-2 w-72 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden z-50"
-      style={{ boxShadow: '0 8px 32px rgba(30,41,59,0.16)', animation: 'fadeInDown 0.15s ease' }}
+      style={{ boxShadow: 'var(--shadow-modal)', animation: 'fadeInDown 0.15s ease' }}
     >
       <div className="px-5 py-4 border-b border-outline-variant bg-surface flex items-center gap-2">
         <span className="material-symbols-outlined text-primary text-[22px]">settings</span>
@@ -141,21 +154,23 @@ function SettingsDropdown({ onClose }) {
         {[
           { key: 'sound', icon: 'volume_up', label: 'Sound Effects' },
           { key: 'autoPrint', icon: 'print', label: 'Auto-Print Receipt' },
-          { key: 'taxBreakdown', icon: 'receipt_long', label: 'Show Tax Breakdown' },
         ].map(item => (
           <div key={item.key} className="flex items-center justify-between px-5 py-3.5 hover:bg-surface-container-low transition-colors">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-[20px] text-on-surface-variant">{item.icon}</span>
               <span className="text-body-md font-medium text-on-surface">{item.label}</span>
             </div>
-            <button
-              onClick={() => toggle(item.key)}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${settings[item.key] ? 'bg-primary' : 'bg-outline-variant'}`}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${settings[item.key] ? 'translate-x-5' : 'translate-x-0'}`} />
-            </button>
+            <ToggleSwitch on={settings[item.key]} onClick={() => toggle(item.key)} />
           </div>
         ))}
+
+        <div className="flex items-center justify-between px-5 py-3.5 hover:bg-surface-container-low transition-colors">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[20px] text-on-surface-variant">dark_mode</span>
+            <span className="text-body-md font-medium text-on-surface">Dark Mode</span>
+          </div>
+          <ToggleSwitch on={isDark} onClick={toggleTheme} />
+        </div>
       </div>
 
       <div className="px-5 py-3.5 border-t border-outline-variant bg-surface-container-low grid grid-cols-2 gap-x-4">
@@ -185,7 +200,7 @@ function ProfileDropdown({ onClose }) {
   return (
     <div
       className="absolute right-0 top-full mt-2 w-72 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden z-50"
-      style={{ boxShadow: '0 8px 32px rgba(30,41,59,0.16)', animation: 'fadeInDown 0.15s ease' }}
+      style={{ boxShadow: 'var(--shadow-modal)', animation: 'fadeInDown 0.15s ease' }}
     >
       <div className="px-5 py-4 bg-primary-fixed border-b border-outline-variant flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-lg flex-shrink-0">
@@ -263,6 +278,7 @@ export default function TopBar({
 }) {
   const [activePanel, setActivePanel] = useState(null)
   const rightActionsRef = useRef(null)
+  const { isDark, toggleTheme } = useTheme()
 
   useEffect(() => {
     if (!activePanel) return
@@ -333,6 +349,18 @@ export default function TopBar({
             Order {orderNumber}
           </span>
         )}
+
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors"
+        >
+          <span className="material-symbols-outlined text-[22px]">
+            {isDark ? 'light_mode' : 'dark_mode'}
+          </span>
+        </button>
 
         {/* Notifications */}
         <div className="relative">

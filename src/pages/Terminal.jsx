@@ -16,7 +16,7 @@ function stockStatus(product) {
 function StatusChip({ status }) {
   const styles = {
     'In Stock': 'text-secondary bg-secondary-container/30',
-    'Low Stock': 'text-tertiary bg-[#ffdcc6]/50',
+    'Low Stock': 'text-tertiary bg-tertiary-fixed/50',
     'Sold Out': 'text-error bg-error-container/50',
   }
   return (
@@ -120,7 +120,7 @@ export default function Terminal() {
   const [activeCategory, setActiveCategory] = useState('All Items')
   const [searchQuery, setSearchQuery] = useState('')
   const { products } = useStore()
-  const { cart, addToCart, removeFromCart, updateQuantity, clearCart, subtotal, tax, total } = useCart()
+  const { cart, addToCart, removeFromCart, updateQuantity, clearCart, subtotal, total } = useCart()
 
   // Sales module shows active products only; zero-stock items remain visible
   // but marked Sold Out and unselectable (SRS #F002 stock visibility rules).
@@ -219,10 +219,6 @@ export default function Terminal() {
             <div className="flex justify-between items-center text-body-md">
               <span className="text-on-surface-variant">Subtotal</span>
               <span className="font-semibold">{fmtRM(subtotal)}</span>
-            </div>
-            <div className="flex justify-between items-center text-body-md">
-              <span className="text-on-surface-variant">Tax (8%)</span>
-              <span className="font-semibold">{fmtRM(tax)}</span>
             </div>
             <div className="flex justify-between items-end pt-1 border-t border-outline-variant">
               <span className="text-title-lg font-semibold text-on-surface">Total</span>

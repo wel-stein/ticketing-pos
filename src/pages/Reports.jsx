@@ -5,7 +5,7 @@ import { exportToExcel } from '../utils/exportExcel'
 import SideNav from '../components/SideNav'
 import TopBar from '../components/TopBar'
 
-const FIELD_CLS = 'w-full h-touch-target-min px-4 bg-white border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none'
+const FIELD_CLS = 'w-full h-touch-target-min px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none'
 
 const PAYMENT_OPTIONS = ['Cash', 'Credit Card', 'Debit Card', 'E-Wallet']
 

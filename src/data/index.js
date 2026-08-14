@@ -158,7 +158,7 @@ export const SEED_TRANSACTIONS = [
   {
     id: 'TX-88291', dateTime: daysAgo(0.2), status: 'Completed',
     staff: 'John Doe', staffId: 'STF-004', counter: 'KL Sentral (Counter 04)',
-    payment: 'Credit Card', subtotal: 114.50, tax: 9.16, discount: 0, total: 123.66,
+    payment: 'Credit Card', subtotal: 114.50, discount: 0, total: 114.50,
     items: [
       { id: 'p1', sku: 'MBM-001', name: 'Mini Bus Model (Classic Red)', qty: 2, unitPrice: 35.00 },
       { id: 'p4', sku: 'SIM-002', name: 'Manja SIM Tourist 15GB', qty: 1, unitPrice: 30.00 },
@@ -169,8 +169,8 @@ export const SEED_TRANSACTIONS = [
   {
     id: 'TX-88290', dateTime: daysAgo(0.3), status: 'Refunded',
     staff: 'M. Smith', staffId: 'STF-009', counter: 'TBS (Counter 09)',
-    payment: 'Cash', subtotal: 18.00, tax: 1.44, discount: 0, total: 19.44,
-    cashReceived: 20.00, changeDue: 0.56,
+    payment: 'Cash', subtotal: 18.00, discount: 0, total: 18.00,
+    cashReceived: 20.00, changeDue: 2.00,
     refund: { reason: 'Defective item', date: daysAgo(0.1), by: 'M. Smith' },
     items: [
       { id: 'p6', sku: 'SOU-002', name: 'ManjaLink Ceramic Mug', qty: 1, unitPrice: 18.00 },
@@ -179,7 +179,7 @@ export const SEED_TRANSACTIONS = [
   {
     id: 'TX-88289', dateTime: daysAgo(1.1), status: 'Completed',
     staff: 'K. Johnson', staffId: 'STF-012', counter: 'Penang Sentral (Counter 12)',
-    payment: 'E-Wallet', subtotal: 130.00, tax: 10.40, discount: 0, total: 140.40,
+    payment: 'E-Wallet', subtotal: 130.00, discount: 0, total: 130.00,
     items: [
       { id: 'p3', sku: 'SIM-001', name: 'Manja SIM Starter Pack', qty: 4, unitPrice: 10.00 },
       { id: 'p5', sku: 'SOU-001', name: 'ManjaLink Keychain', qty: 5, unitPrice: 8.00 },
@@ -190,7 +190,7 @@ export const SEED_TRANSACTIONS = [
   {
     id: 'TX-88288', dateTime: daysAgo(1.4), status: 'Cancelled',
     staff: 'John Doe', staffId: 'STF-004', counter: 'KL Sentral (Counter 04)',
-    payment: 'Debit Card', subtotal: 59.00, tax: 4.72, discount: 0, total: 63.72,
+    payment: 'Debit Card', subtotal: 59.00, discount: 0, total: 59.00,
     items: [
       { id: 'p2', sku: 'MBM-002', name: 'Mini Bus Model (Double Decker LTD)', qty: 1, unitPrice: 59.00 },
     ],
@@ -198,8 +198,8 @@ export const SEED_TRANSACTIONS = [
   {
     id: 'TX-88287', dateTime: daysAgo(2.2), status: 'Completed',
     staff: 'John Doe', staffId: 'STF-004', counter: 'KL Sentral (Counter 04)',
-    payment: 'Cash', subtotal: 81.00, tax: 6.48, discount: 0, total: 87.48,
-    cashReceived: 100.00, changeDue: 12.52,
+    payment: 'Cash', subtotal: 81.00, discount: 0, total: 81.00,
+    cashReceived: 100.00, changeDue: 19.00,
     items: [
       { id: 'p11', sku: 'OTH-002', name: 'ManjaLink Umbrella', qty: 1, unitPrice: 25.00 },
       { id: 'p1', sku: 'MBM-001', name: 'Mini Bus Model (Classic Red)', qty: 1, unitPrice: 35.00 },

@@ -49,7 +49,7 @@ function CounterModal({ initial, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface-container-lowest rounded-2xl w-full max-w-md mx-4 overflow-hidden modal-shadow animate-[fadeInScale_0.2s_ease]">
         <div className="p-6 border-b border-outline-variant flex items-center justify-between">
           <h3 className="text-title-lg font-semibold text-on-surface">{isEdit ? 'Edit Counter' : 'Add New Counter'}</h3>

@@ -12,10 +12,10 @@ const NAV_ITEMS = [
 function LogoutModal({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={onClose} />
       <div
         className="relative bg-surface-container-lowest rounded-2xl w-full max-w-xs mx-4 overflow-hidden text-center"
-        style={{ boxShadow: '0 8px 32px rgba(30,41,59,0.20)', animation: 'fadeInScale 0.15s ease' }}
+        style={{ boxShadow: 'var(--shadow-modal)', animation: 'fadeInScale 0.15s ease' }}
       >
         <div className="px-6 pt-8 pb-6">
           <div className="w-14 h-14 bg-error-container rounded-full flex items-center justify-center mx-auto mb-4">

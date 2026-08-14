@@ -96,7 +96,7 @@ function ProductDrawer({ initial, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={onClose} />
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-surface flex flex-col modal-shadow">
         <div className="p-6 border-b border-outline-variant flex items-center justify-between">
           <h3 className="text-title-lg font-semibold text-on-surface">{isEdit ? 'Edit Product' : 'Add New Product'}</h3>

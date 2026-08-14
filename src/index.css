@@ -2,6 +2,153 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme tokens.
+ * Colors are stored as space-separated RGB channels so Tailwind can apply
+ * opacity modifiers (e.g. `bg-primary-fixed/20`) via `rgb(var(--x) / <alpha>)`.
+ */
+:root {
+  color-scheme: light;
+
+  --primary: 0 88 190;
+  --on-primary: 255 255 255;
+  --primary-container: 33 112 228;
+  --on-primary-container: 254 252 255;
+  --primary-fixed: 216 226 255;
+  --primary-fixed-dim: 173 198 255;
+  --on-primary-fixed: 0 26 66;
+  --on-primary-fixed-variant: 0 67 149;
+  --inverse-primary: 173 198 255;
+
+  --secondary: 0 108 73;
+  --on-secondary: 255 255 255;
+  --secondary-container: 108 248 187;
+  --on-secondary-container: 0 113 77;
+  --secondary-fixed: 111 251 190;
+  --secondary-fixed-dim: 78 222 163;
+  --on-secondary-fixed: 0 33 19;
+  --on-secondary-fixed-variant: 0 82 54;
+
+  --tertiary: 146 71 0;
+  --on-tertiary: 255 255 255;
+  --tertiary-container: 183 91 0;
+  --on-tertiary-container: 255 251 255;
+  --tertiary-fixed: 255 220 198;
+  --tertiary-fixed-dim: 255 183 134;
+  --on-tertiary-fixed: 49 20 0;
+  --on-tertiary-fixed-variant: 114 54 0;
+
+  --error: 186 26 26;
+  --on-error: 255 255 255;
+  --error-container: 255 218 214;
+  --on-error-container: 147 0 10;
+
+  --background: 249 249 255;
+  --on-background: 17 28 45;
+  --surface: 249 249 255;
+  --on-surface: 17 28 45;
+  --surface-variant: 216 227 251;
+  --on-surface-variant: 66 71 84;
+  --surface-dim: 207 218 242;
+  --surface-bright: 249 249 255;
+  --surface-tint: 0 90 194;
+
+  --surface-container-lowest: 255 255 255;
+  --surface-container-low: 240 243 255;
+  --surface-container: 231 238 255;
+  --surface-container-high: 222 232 255;
+  --surface-container-highest: 216 227 251;
+
+  --outline: 114 119 133;
+  --outline-variant: 194 198 214;
+
+  --inverse-surface: 38 49 67;
+  --inverse-on-surface: 236 241 255;
+  --scrim: 0 0 0;
+
+  --shadow-card: 0px 4px 12px rgba(30, 41, 59, 0.08);
+  --shadow-modal: 0px 8px 32px rgba(30, 41, 59, 0.16);
+  --scrollbar-thumb: #c2c6d6;
+  --scrollbar-thumb-hover: #727785;
+  --receipt-bg: #ffffff;
+  --receipt-dot: #dee8ff;
+  /* stroke #727785 — matches --outline */
+  --select-chevron: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23727785' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.dark {
+  color-scheme: dark;
+
+  --primary: 173 198 255;
+  --on-primary: 0 47 101;
+  --primary-container: 0 74 158;
+  --on-primary-container: 216 226 255;
+  /* `primary-fixed` backs selected/active chips that carry on-surface text,
+     so it has to darken in this theme rather than stay tonally fixed. */
+  --primary-fixed: 0 48 98;
+  --primary-fixed-dim: 173 198 255;
+  --on-primary-fixed: 216 226 255;
+  --on-primary-fixed-variant: 173 198 255;
+  --inverse-primary: 0 88 190;
+
+  --secondary: 78 222 163;
+  --on-secondary: 0 56 35;
+  --secondary-container: 0 82 54;
+  --on-secondary-container: 111 251 190;
+  --secondary-fixed: 0 67 43;
+  --secondary-fixed-dim: 78 222 163;
+  --on-secondary-fixed: 111 251 190;
+  --on-secondary-fixed-variant: 111 251 190;
+
+  --tertiary: 255 183 134;
+  --on-tertiary: 78 36 0;
+  --tertiary-container: 114 54 0;
+  --on-tertiary-container: 255 220 198;
+  --tertiary-fixed: 92 43 0;
+  --tertiary-fixed-dim: 255 183 134;
+  --on-tertiary-fixed: 255 220 198;
+  --on-tertiary-fixed-variant: 255 183 134;
+
+  --error: 255 180 171;
+  --on-error: 105 0 5;
+  --error-container: 147 0 10;
+  --on-error-container: 255 218 214;
+
+  --background: 13 19 31;
+  --on-background: 224 230 245;
+  --surface: 19 26 39;
+  --on-surface: 224 230 245;
+  --surface-variant: 66 71 84;
+  --on-surface-variant: 194 198 214;
+  --surface-dim: 13 19 31;
+  --surface-bright: 51 58 73;
+  --surface-tint: 173 198 255;
+
+  /* Elevation reads as *lighter* in the dark theme, so the container ramp is
+     inverted relative to the light one — `lowest` is the raised card colour. */
+  --surface-container-lowest: 23 30 44;
+  --surface-container-low: 27 35 49;
+  --surface-container: 32 40 54;
+  --surface-container-high: 42 50 64;
+  --surface-container-highest: 52 60 75;
+
+  --outline: 140 145 160;
+  --outline-variant: 60 65 78;
+
+  --inverse-surface: 224 230 245;
+  --inverse-on-surface: 45 54 72;
+  --scrim: 0 0 0;
+
+  --shadow-card: 0px 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0px 8px 32px rgba(0, 0, 0, 0.6);
+  --scrollbar-thumb: #3c414e;
+  --scrollbar-thumb-hover: #8c91a0;
+  --receipt-bg: #171e2c;
+  --receipt-dot: #2a3648;
+  /* stroke #8c91a0 — matches the dark --outline */
+  --select-chevron: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238c91a0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -9,6 +156,8 @@
   body {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
+    background-color: rgb(var(--background));
+    color: rgb(var(--on-background));
   }
   /* Native select arrows sit flush against the right border; draw our own
      chevron inset from the edge instead. padding-right is !important so it
@@ -17,7 +166,7 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23727785' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: var(--select-chevron);
     background-repeat: no-repeat;
     background-position: right 0.875rem center;
     background-size: 1rem 1rem;
@@ -41,11 +190,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c2c6d6;
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #727785;
+  background: var(--scrollbar-thumb-hover);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -57,7 +206,11 @@
 }
 
 .card-shadow {
-  box-shadow: 0px 4px 12px rgba(30, 41, 59, 0.08);
+  box-shadow: var(--shadow-card);
+}
+
+.modal-shadow {
+  box-shadow: var(--shadow-modal);
 }
 
 @keyframes fadeInDown {
@@ -71,7 +224,7 @@
 }
 
 .receipt-texture {
-  background-color: #ffffff;
-  background-image: radial-gradient(#dee8ff 0.5px, transparent 0.5px);
+  background-color: var(--receipt-bg);
+  background-image: radial-gradient(var(--receipt-dot) 0.5px, transparent 0.5px);
   background-size: 12px 12px;
 }

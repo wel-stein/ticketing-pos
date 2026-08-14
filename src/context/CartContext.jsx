@@ -39,13 +39,12 @@ export function CartProvider({ children }) {
   const clearCart = useCallback(() => setCart([]), [])
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  const tax = subtotal * 0.08
-  const total = subtotal + tax
+  const total = subtotal
   const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0)
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, subtotal, tax, total, itemCount }}
+      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, subtotal, total, itemCount }}
     >
       {children}
     </CartContext.Provider>

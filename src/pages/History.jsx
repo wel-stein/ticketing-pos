@@ -24,7 +24,7 @@ function BarcodeVisual({ code }) {
   const bars = [4, 1, 8, 1, 4, 4, 8, 4, 1, 4, 4, 8, 1, 4, 4, 8, 4, 4, 8, 1]
   return (
     <div className="mt-5 flex flex-col items-center gap-1 opacity-60">
-      <div className="w-full h-12 bg-on-surface rounded-sm flex items-center justify-center">
+      <div className="w-full h-12 bg-scrim/85 rounded-sm flex items-center justify-center">
         <div className="w-11/12 h-8 bg-white flex items-center px-2 gap-[1px]">
           {bars.map((w, i) => (
             <div key={i} className="h-6 bg-black rounded-[0.5px]" style={{ width: `${w}px` }} />
@@ -43,7 +43,7 @@ function RefundModal({ tx, onClose, onConfirm }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface-container-lowest rounded-2xl w-full max-w-md mx-4 overflow-hidden modal-shadow animate-[fadeInScale_0.2s_ease]">
         <div className="px-6 pt-8 pb-4 text-center">
           <div className="w-14 h-14 bg-error-container rounded-full flex items-center justify-center mx-auto mb-4">
@@ -107,7 +107,7 @@ function EmailModal({ tx, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface-container-lowest rounded-2xl w-full max-w-md mx-4 overflow-hidden modal-shadow p-6 text-center animate-[fadeInScale_0.2s_ease]">
         {sent ? (
           <>
@@ -205,13 +205,13 @@ export default function History() {
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="date"
-                className="w-full h-touch-target-min px-3 bg-white border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className="w-full h-touch-target-min px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 value={filters.from}
                 onChange={e => setFilters(f => ({ ...f, from: e.target.value }))}
               />
               <input
                 type="date"
-                className="w-full h-touch-target-min px-3 bg-white border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className="w-full h-touch-target-min px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 value={filters.to}
                 onChange={e => setFilters(f => ({ ...f, to: e.target.value }))}
               />
@@ -220,7 +220,7 @@ export default function History() {
           <div className="flex flex-col gap-1.5">
             <label className="font-mono text-label-md text-on-surface-variant">Staff ID</label>
             <select
-              className="w-full h-touch-target-min px-4 bg-white border border-outline-variant rounded-lg text-body-md focus:border-primary outline-none"
+              className="w-full h-touch-target-min px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:border-primary outline-none"
               value={filters.staff}
               onChange={e => setFilters(f => ({ ...f, staff: e.target.value }))}
             >
@@ -231,7 +231,7 @@ export default function History() {
           <div className="flex flex-col gap-1.5">
             <label className="font-mono text-label-md text-on-surface-variant">Transaction Type</label>
             <select
-              className="w-full h-touch-target-min px-4 bg-white border border-outline-variant rounded-lg text-body-md focus:border-primary outline-none"
+              className="w-full h-touch-target-min px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:border-primary outline-none"
               value={filters.type}
               onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}
             >
@@ -245,7 +245,7 @@ export default function History() {
             <label className="font-mono text-label-md text-on-surface-variant">Order ID</label>
             <div className="relative">
               <input
-                className="w-full h-touch-target-min px-4 bg-white border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10 font-mono"
+                className="w-full h-touch-target-min px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10 font-mono"
                 placeholder="TX-00000"
                 value={filters.orderId}
                 onChange={e => setFilters(f => ({ ...f, orderId: e.target.value }))}
@@ -261,7 +261,7 @@ export default function History() {
         <section className="flex-1 overflow-hidden flex">
           {/* Transaction Table */}
           <div className="flex-1 overflow-y-auto p-5">
-            <div className="bg-white border border-outline-variant rounded-xl overflow-hidden">
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-surface-container-low border-b border-outline-variant">
                   <tr>
@@ -305,7 +305,7 @@ export default function History() {
                         </span>
                       </td>
                       <td className="p-4 text-right">
-                        <button className="w-9 h-9 flex items-center justify-center rounded-full group-hover:bg-white transition-colors ml-auto">
+                        <button className="w-9 h-9 flex items-center justify-center rounded-full group-hover:bg-surface-container-high transition-colors ml-auto">
                           <span className="material-symbols-outlined text-primary text-[20px]">visibility</span>
                         </button>
                       </td>
@@ -327,7 +327,7 @@ export default function History() {
           <aside
             style={{ width: '360px' }}
             className={`bg-surface-container-low border-l border-outline-variant flex flex-col p-5 overflow-y-auto flex-shrink-0 ${
-              showMobileReceipt ? 'fixed inset-0 z-40 bg-white w-full md:relative md:w-panel-cart' : 'hidden md:flex md:flex-col'
+              showMobileReceipt ? 'fixed inset-0 z-40 bg-surface-container-low w-full md:relative md:w-panel-cart' : 'hidden md:flex md:flex-col'
             }`}
           >
             <div className="flex justify-between items-center mb-5">
@@ -389,10 +389,6 @@ export default function History() {
                         <span className="font-semibold">-{fmtRM(selectedTx.discount)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-body-md">
-                      <span>Tax (8%)</span>
-                      <span className="font-semibold">{fmtRM(selectedTx.tax)}</span>
-                    </div>
                     <div className="flex justify-between items-center pt-1">
                       <span className="text-title-lg font-bold">TOTAL</span>
                       <span className="text-headline-md font-bold text-primary">{fmtRM(selectedTx.total)}</span>
