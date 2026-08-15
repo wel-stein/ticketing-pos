@@ -37,17 +37,27 @@ app.use('/api/auth/login', rateLimit({
 
 app.use('/api/auth', authRouter)
 
-// Everything below needs a live session.
-app.use('/api', requireAuth, catalogRouter)
-app.use('/api', requireAuth, stockRouter)
-app.use('/api', requireAuth, salesRouter)
-app.use('/api', requireAuth, reportsRouter)
+// Everything past this point needs a live session. Mounted once on its own:
+// attaching it to each router would re-run the session lookup for every
+// router the path failed to match, costing a database round trip each time.
+app.use('/api', requireAuth)
+
+app.use('/api', catalogRouter)
+app.use('/api', stockRouter)
+app.use('/api', salesRouter)
+app.use('/api', reportsRouter)
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Unknown endpoint.' }))
 
-// Central error handler — logs the detail, returns a generic message so
-// driver/SQL internals never reach the browser.
+// Central error handler. Client errors (a malformed JSON body, for instance,
+// which express.json throws as a 400) keep their status and message; anything
+// else is logged and reported generically so driver and SQL internals never
+// reach the browser.
 app.use((err, _req, res, _next) => {
+  const status = err.status || err.statusCode
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ error: err.expose ? err.message : 'Bad request.' })
+  }
   console.error('[api]', err)
   res.status(500).json({ error: 'Internal server error.' })
 })
