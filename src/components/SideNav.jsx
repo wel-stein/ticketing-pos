@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const NAV_ITEMS = [
   { path: '/', icon: 'point_of_sale', label: 'Sales' },
@@ -10,6 +11,14 @@ const NAV_ITEMS = [
 ]
 
 function LogoutModal({ onClose }) {
+  const { user, logout } = useAuth()
+  const [signingOut, setSigningOut] = useState(false)
+
+  const handleSignOut = async () => {
+    setSigningOut(true)
+    await logout()
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={onClose} />
@@ -28,23 +37,25 @@ function LogoutModal({ onClose }) {
           </div>
           <h3 className="text-headline-md font-semibold text-on-surface mb-2">End Session?</h3>
           <p className="text-body-md text-on-surface-variant">
-            You're signed in as <span className="font-semibold text-on-surface">J. Doe</span> on{' '}
-            Counter <span className="font-semibold text-on-surface">04</span>.
-            All unsaved data will be lost.
+            You're signed in as <span className="font-semibold text-on-surface">{user?.name}</span>
+            {user?.counterName && <> at <span className="font-semibold text-on-surface">{user.counterName}</span></>}.
+            Any items still in the cart will be lost.
           </p>
         </div>
         <div className="px-6 pb-6 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 border border-outline-variant rounded-xl font-mono text-label-md text-on-surface hover:bg-surface-container-low transition-colors"
+            disabled={signingOut}
+            className="flex-1 py-3 border border-outline-variant rounded-xl font-mono text-label-md text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-40"
           >
             Cancel
           </button>
           <button
-            onClick={onClose}
-            className="flex-1 py-3 bg-error text-on-error rounded-xl font-mono text-label-md hover:opacity-90 transition-opacity"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="flex-1 py-3 bg-error text-on-error rounded-xl font-mono text-label-md hover:opacity-90 transition-opacity disabled:opacity-60"
           >
-            End Session
+            {signingOut ? 'Signing out…' : 'End Session'}
           </button>
         </div>
       </div>
@@ -55,6 +66,7 @@ function LogoutModal({ onClose }) {
 export default function SideNav() {
   const location = useLocation()
   const [showLogout, setShowLogout] = useState(false)
+  const { user } = useAuth()
 
   return (
     <>
@@ -64,9 +76,13 @@ export default function SideNav() {
             <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
               <span className="material-symbols-outlined text-[20px]">person</span>
             </div>
-            <div>
-              <p className="text-label-md font-mono font-bold text-on-surface">Counter 04</p>
-              <p className="text-label-sm font-mono text-on-surface-variant">Staff: J. Doe</p>
+            <div className="min-w-0">
+              <p className="text-label-md font-mono font-bold text-on-surface truncate">
+                {user?.counterName ?? 'No counter'}
+              </p>
+              <p className="text-label-sm font-mono text-on-surface-variant truncate">
+                Staff: {user?.name}
+              </p>
             </div>
           </div>
         </div>

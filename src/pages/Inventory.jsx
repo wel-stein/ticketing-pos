@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../context/StoreContext'
-import { CATEGORIES, UNITS_OF_MEASURE, STOCK_OUT_REASONS, RETURN_TYPES, CURRENT_COUNTER } from '../data'
+import { CATEGORIES, UNITS_OF_MEASURE, STOCK_OUT_REASONS, RETURN_TYPES } from '../data'
+import { useAuth } from '../context/AuthContext'
 import { fmtRM, fmtDate, fmtDateTime } from '../utils/format'
 import SideNav from '../components/SideNav'
 import TopBar from '../components/TopBar'
@@ -69,11 +70,11 @@ function Field({ label, children, required }) {
   )
 }
 
-const EMPTY_PRODUCT_FORM = {
+const emptyProductForm = (counterName = '') => ({
   id: null, name: '', description: '', sku: '', category: CATEGORIES[0],
-  price: '', stock: '', minStock: '', counter: CURRENT_COUNTER, status: 'Active',
+  price: '', stock: '', minStock: '', counter: counterName, status: 'Active',
   uom: UNITS_OF_MEASURE[0], image: '',
-}
+})
 
 function ProductDrawer({ initial, onClose, onSave }) {
   const { counters } = useStore()
@@ -384,24 +385,28 @@ function MovementHistoryTable({ title, movements, columns }) {
 
 function StockInTab() {
   const { products, movements, counters, stockIn } = useStore()
-  const [form, setForm] = useState({ productId: '', qty: '', counter: CURRENT_COUNTER, refNo: '', remarks: '', date: todayInput(), attachmentName: '' })
-  const [savedNo, setSavedNo] = useState(null)
+  const { user } = useAuth()
+  const blank = () => ({
+    productId: '', qty: '', counter: user?.counterName ?? '', refNo: '',
+    remarks: '', date: todayInput(), attachmentName: '',
+  })
+  const [form, setForm] = useState(blank)
+  const [message, setMessage] = useState(null)
+  const [busy, setBusy] = useState(false)
 
   const product = products.find(p => p.id === form.productId)
   const qty = parseInt(form.qty) || 0
-  const docNo = useMemo(() => {
-    const max = movements.filter(m => m.no?.startsWith('SI')).reduce((a, m) => Math.max(a, parseInt(m.no.slice(3), 10) || 0), 0)
-    return `SI-${String(max + 1).padStart(4, '0')}`
-  }, [movements])
 
-  const submit = () => {
-    if (!product || qty <= 0) return
-    stockIn({
+  const submit = async () => {
+    if (!product || qty <= 0 || busy) return
+    setBusy(true)
+    const { error, docNo } = await stockIn({
       productId: product.id, qty, counter: form.counter, refNo: form.refNo,
       remarks: form.remarks, date: new Date(form.date).toISOString(), attachmentName: form.attachmentName,
     })
-    setSavedNo(docNo)
-    setForm({ productId: '', qty: '', counter: CURRENT_COUNTER, refNo: '', remarks: '', date: todayInput(), attachmentName: '' })
+    setBusy(false)
+    setMessage(error ? { type: 'error', text: error } : { type: 'ok', text: `${docNo} recorded — stock updated.` })
+    if (!error) setForm(blank())
   }
 
   const history = movements.filter(m => m.type === 'IN')
@@ -414,16 +419,18 @@ function StockInTab() {
             <span className="material-symbols-outlined text-secondary">input</span>
             Stock In Form
           </h3>
-          {savedNo && (
-            <span className="text-secondary text-label-md font-mono flex items-center gap-1">
-              <span className="material-symbols-outlined text-[16px]">check_circle</span>
-              {savedNo} recorded — stock updated.
+          {message && (
+            <span className={`text-label-md font-mono flex items-center gap-1 ${message.type === 'ok' ? 'text-secondary' : 'text-error'}`}>
+              <span className="material-symbols-outlined text-[16px]">
+                {message.type === 'ok' ? 'check_circle' : 'error'}
+              </span>
+              {message.text}
             </span>
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Field label="Stock In No.">
-            <input className={`${FIELD_CLS} font-mono`} value={docNo} disabled />
+            <input className={`${FIELD_CLS} font-mono`} value="Assigned on save" disabled />
           </Field>
           <Field label="Stock In Date">
             <input type="date" className={FIELD_CLS} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
@@ -502,17 +509,16 @@ function StockOutTab() {
   const product = products.find(p => p.id === form.productId)
   const qty = parseInt(form.qty) || 0
   const exceeds = product && qty > product.stock
-  const docNo = useMemo(() => {
-    const max = movements.filter(m => m.no?.startsWith('SO')).reduce((a, m) => Math.max(a, parseInt(m.no.slice(3), 10) || 0), 0)
-    return `SO-${String(max + 1).padStart(4, '0')}`
-  }, [movements])
+  const [busy, setBusy] = useState(false)
 
-  const submit = () => {
-    if (!product || qty <= 0 || exceeds) return
-    const error = stockOut({
+  const submit = async () => {
+    if (!product || qty <= 0 || exceeds || busy) return
+    setBusy(true)
+    const { error, docNo } = await stockOut({
       productId: product.id, qty, reason: form.reason, remarks: form.remarks,
       date: new Date(form.date).toISOString(),
     })
+    setBusy(false)
     setMessage(error ? { type: 'error', text: error } : { type: 'ok', text: `${docNo} recorded — stock updated.` })
     if (!error) setForm({ productId: '', qty: '', reason: STOCK_OUT_REASONS[0], remarks: '', date: todayInput() })
   }
@@ -536,7 +542,7 @@ function StockOutTab() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Field label="Stock Out No.">
-            <input className={`${FIELD_CLS} font-mono`} value={docNo} disabled />
+            <input className={`${FIELD_CLS} font-mono`} value="Assigned on save" disabled />
           </Field>
           <Field label="Stock Out Date">
             <input type="date" className={FIELD_CLS} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
@@ -607,17 +613,16 @@ function ReturnStockTab() {
   const qty = parseInt(form.qty) || 0
   const isTransferOut = form.returnType === 'Transfer Out'
   const exceeds = isTransferOut && product && qty > product.stock
-  const docNo = useMemo(() => {
-    const max = movements.filter(m => m.no?.startsWith('RT')).reduce((a, m) => Math.max(a, parseInt(m.no.slice(3), 10) || 0), 0)
-    return `RT-${String(max + 1).padStart(4, '0')}`
-  }, [movements])
+  const [busy, setBusy] = useState(false)
 
-  const submit = () => {
-    if (!product || qty <= 0 || exceeds) return
-    const error = returnStock({
+  const submit = async () => {
+    if (!product || qty <= 0 || exceeds || busy) return
+    setBusy(true)
+    const { error, docNo } = await returnStock({
       productId: product.id, qty, returnType: form.returnType, reason: form.reason,
       remarks: form.remarks, date: new Date(form.date).toISOString(),
     })
+    setBusy(false)
     setMessage(error ? { type: 'error', text: error } : { type: 'ok', text: `${docNo} recorded — stock updated.` })
     if (!error) setForm({ productId: '', qty: '', returnType: RETURN_TYPES[0], reason: '', remarks: '', date: todayInput() })
   }
@@ -641,7 +646,7 @@ function ReturnStockTab() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Field label="Return No.">
-            <input className={`${FIELD_CLS} font-mono`} value={docNo} disabled />
+            <input className={`${FIELD_CLS} font-mono`} value="Assigned on save" disabled />
           </Field>
           <Field label="Return Date">
             <input type="date" className={FIELD_CLS} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
@@ -736,6 +741,7 @@ export default function Inventory() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [drawer, setDrawer] = useState(null) // null | product form initial values
   const { saveProduct } = useStore()
+  const { user } = useAuth()
 
   return (
     <div className="bg-background text-on-background h-screen flex flex-col overflow-hidden">
@@ -766,7 +772,7 @@ export default function Inventory() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {activeTab === 'dashboard' && (
               <DashboardTab
-                onAdd={() => setDrawer(EMPTY_PRODUCT_FORM)}
+                onAdd={() => setDrawer(emptyProductForm(user?.counterName ?? ''))}
                 onEdit={(item) => setDrawer({ ...item, price: String(item.price), stock: String(item.stock), minStock: String(item.minStock) })}
               />
             )}

@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
-
-const USER = {
-  name: 'John Doe',
-  initials: 'JD',
-  role: 'Sales Staff',
-  counter: '04',
-  shift: 'Morning Shift',
-  since: '08:00 AM',
-}
+import { useAuth } from '../context/AuthContext'
 
 const NOTIFICATIONS_DATA = [
   {
@@ -197,6 +189,14 @@ function SettingsDropdown({ onClose }) {
 }
 
 function ProfileDropdown({ onClose }) {
+  const { user, logout } = useAuth()
+  const initials = (user?.name ?? '')
+    .split(' ')
+    .map(part => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
   return (
     <div
       className="absolute right-0 top-full mt-2 w-72 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden z-50"
@@ -204,14 +204,18 @@ function ProfileDropdown({ onClose }) {
     >
       <div className="px-5 py-4 bg-primary-fixed border-b border-outline-variant flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-lg flex-shrink-0">
-          {USER.initials}
+          {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-title-lg font-semibold text-on-surface truncate">{USER.name}</p>
-          <p className="text-label-sm font-mono text-on-surface-variant">{USER.role} · Counter {USER.counter}</p>
+          <p className="text-title-lg font-semibold text-on-surface truncate">{user?.name}</p>
+          <p className="text-label-sm font-mono text-on-surface-variant truncate">
+            {user?.role} · {user?.staffCode}
+          </p>
           <div className="flex items-center gap-1 mt-0.5">
             <span className="w-2 h-2 rounded-full bg-secondary flex-shrink-0" />
-            <span className="text-label-sm font-mono text-secondary">{USER.shift} since {USER.since}</span>
+            <span className="text-label-sm font-mono text-secondary truncate">
+              {user?.counterName ?? 'No counter selected'}
+            </span>
           </div>
         </div>
       </div>
@@ -239,12 +243,8 @@ function ProfileDropdown({ onClose }) {
       </div>
 
       <div className="border-t border-outline-variant py-1.5">
-        <div className="px-5 py-2 flex justify-between text-label-sm font-mono text-on-surface-variant">
-          <span>Session ID</span>
-          <span className="text-outline">SESS-8A24F</span>
-        </div>
         <button
-          onClick={onClose}
+          onClick={() => { onClose(); logout() }}
           className="w-full flex items-center gap-3 px-5 py-3 hover:bg-error-container transition-colors text-left group"
         >
           <span className="material-symbols-outlined text-[22px] text-error">logout</span>

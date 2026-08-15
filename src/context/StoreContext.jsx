@@ -1,300 +1,232 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import {
-  SEED_PRODUCTS, SEED_TRANSACTIONS, SEED_MOVEMENTS, SEED_COUNTERS,
-  CURRENT_USER, CURRENT_COUNTER,
-} from '../data'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import { api, qs } from '../api/client'
+import { useAuth } from './AuthContext'
 
 const StoreContext = createContext(null)
 
-// v2: suppliers replaced by counters (older v1 state is incompatible).
-const STORAGE_KEY = 'manjalink-store-v2'
+// ── Row mappers ───────────────────────────────────────────────────────────
+// The API speaks snake_case with numeric keys; the pages were written against
+// the original camelCase seed shapes. Mapping here keeps both sides idiomatic
+// and means a schema rename touches one file.
 
-function loadInitial() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (parsed.products && parsed.transactions && parsed.movements && parsed.counters) return parsed
-    }
-  } catch {
-    // Corrupted persisted state — fall back to seed data.
-  }
-  return {
-    products: SEED_PRODUCTS,
-    transactions: SEED_TRANSACTIONS,
-    movements: SEED_MOVEMENTS,
-    counters: SEED_COUNTERS,
-    auditLog: [],
-  }
-}
+const mapProduct = row => ({
+  id: row.id,
+  sku: row.sku,
+  name: row.name,
+  description: row.description,
+  category: row.category,
+  uom: row.uom,
+  price: Number(row.price),
+  stock: row.stock,
+  minStock: row.min_stock,
+  maxStock: row.max_stock,
+  counterId: row.counter_id,
+  counter: row.counter_name,
+  status: row.status,
+  image: row.image_url,
+  createdBy: row.created_by,
+  createdDate: row.created_at,
+})
 
-const pad = (n, len = 4) => String(n).padStart(len, '0')
+const mapTransaction = row => ({
+  // `id` is the receipt number the UI prints and filters on; `dbId` is the
+  // surrogate key the API needs for writes.
+  id: row.tx_no,
+  dbId: row.id,
+  dateTime: row.tx_datetime,
+  status: row.status,
+  staff: row.staff_name,
+  counter: row.counter_name,
+  payment: row.payment_method,
+  subtotal: Number(row.subtotal),
+  discount: Number(row.discount),
+  total: Number(row.total),
+  cashReceived: row.cash_received == null ? undefined : Number(row.cash_received),
+  changeDue: row.change_due == null ? undefined : Number(row.change_due),
+  itemCount: row.item_count,
+  items: (row.items ?? []).map(i => ({
+    id: i.product_id,
+    sku: i.sku,
+    name: i.name,
+    qty: i.qty,
+    unitPrice: Number(i.unit_price),
+  })),
+  refund: row.refund_reason
+    ? { reason: row.refund_reason, date: row.refund_at, by: row.refund_by }
+    : undefined,
+})
 
-function nextDocNo(movements, prefix) {
-  const max = movements
-    .filter(m => m.no?.startsWith(prefix))
-    .reduce((acc, m) => Math.max(acc, parseInt(m.no.slice(prefix.length + 1), 10) || 0), 0)
-  return `${prefix}-${pad(max + 1)}`
-}
+const mapMovement = row => ({
+  id: row.id,
+  no: row.doc_no,
+  type: row.type,
+  date: row.movement_date,
+  productId: row.product_id,
+  sku: row.sku,
+  productName: row.product_name,
+  qty: row.qty,
+  balanceAfter: row.balance_after,
+  refNo: row.ref_no,
+  reason: row.reason,
+  returnType: row.return_type,
+  remarks: row.remarks,
+  attachmentName: row.attachment_name,
+  counter: row.counter_name,
+  createdBy: row.created_by,
+})
 
-function nextTxId(transactions) {
-  const max = transactions.reduce((acc, t) => Math.max(acc, parseInt(t.id.replace('TX-', ''), 10) || 0), 88291)
-  return `TX-${max + 1}`
-}
+const mapAudit = row => ({
+  id: row.id,
+  time: row.created_at,
+  user: row.user_name,
+  action: row.action,
+  detail: row.detail,
+})
 
 export function StoreProvider({ children }) {
-  const [store, setStore] = useState(loadInitial)
+  const { isAuthenticated } = useAuth()
+
+  const [products, setProducts] = useState([])
+  const [transactions, setTransactions] = useState([])
+  const [movements, setMovements] = useState([])
+  const [counters, setCounters] = useState([])
+  const [auditLog, setAuditLog] = useState([])
+  const [lookups, setLookups] = useState({ categories: [], unitsOfMeasure: [], staff: [] })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const refresh = useCallback(async () => {
+    if (!isAuthenticated) return
+    setError(null)
+    try {
+      const [p, t, m, c, a, l] = await Promise.all([
+        api.get('/products'),
+        api.get('/transactions' + qs({ limit: 200 })),
+        api.get('/movements' + qs({ limit: 200 })),
+        api.get('/counters'),
+        api.get('/audit' + qs({ limit: 100 })),
+        api.get('/lookups'),
+      ])
+      setProducts(p.map(mapProduct))
+      setTransactions(t.map(mapTransaction))
+      setMovements(m.map(mapMovement))
+      setCounters(c)
+      setAuditLog(a.map(mapAudit))
+      setLookups(l)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
+    if (isAuthenticated) {
+      setLoading(true)
+      refresh()
+    } else {
+      setProducts([]); setTransactions([]); setMovements([]); setCounters([]); setAuditLog([])
+      setLoading(false)
+    }
+  }, [isAuthenticated, refresh])
+
+  // Writes go to the server, then re-read. The server owns stock arithmetic
+  // and document numbering, so there is no optimistic local copy to drift.
+  const counterIdFor = useCallback(
+    name => counters.find(c => c.name === name)?.id ?? null,
+    [counters]
+  )
+
+  const saveProduct = useCallback(async product => {
+    const body = {
+      sku: product.sku,
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      uom: product.uom,
+      price: Number(product.price),
+      minStock: Number(product.minStock ?? 0),
+      maxStock: product.maxStock == null ? null : Number(product.maxStock),
+      counterId: product.counterId ?? counterIdFor(product.counter),
+      status: product.status,
+      imageUrl: product.image,
+    }
+    if (product.id) await api.put(`/products/${product.id}`, body)
+    else await api.post('/products', { ...body, stock: Number(product.stock ?? 0) })
+    await refresh()
+  }, [counterIdFor, refresh])
+
+  const setProductStatus = useCallback(async (id, status) => {
+    await api.patch(`/products/${id}/status`, { status })
+    await refresh()
+  }, [refresh])
+
+  const saveCounter = useCallback(async counter => {
+    const body = {
+      code: counter.code,
+      name: counter.name,
+      location: counter.location,
+      status: counter.status,
+    }
+    if (counter.id) await api.put(`/counters/${counter.id}`, body)
+    else await api.post('/counters', body)
+    await refresh()
+  }, [refresh])
+
+  const setCounterStatus = useCallback(async (id, status) => {
+    await api.put(`/counters/${id}`, { status })
+    await refresh()
+  }, [refresh])
+
+  // Stock helpers resolve to { error, docNo }. The document number is
+  // assigned by the server sequence, so the caller must display what comes
+  // back rather than predicting the next one locally.
+  const postMovement = useCallback(async (path, payload) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
-    } catch {
-      // Storage full or unavailable — app keeps working in memory.
+      const result = await api.post(path, payload)
+      await refresh()
+      return { error: null, docNo: result.docNo, balanceAfter: result.balanceAfter }
+    } catch (err) {
+      return { error: err.message, docNo: null }
     }
-  }, [store])
+  }, [refresh])
 
-  const audit = (action, detail) => ({
-    id: `a${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    time: new Date().toISOString(),
-    user: CURRENT_USER.name,
-    action,
-    detail,
-  })
+  const stockIn = useCallback(p => postMovement('/stock-in', p), [postMovement])
+  const stockOut = useCallback(p => postMovement('/stock-out', p), [postMovement])
+  const returnStock = useCallback(p => postMovement('/stock-return', p), [postMovement])
 
-  const saveProduct = useCallback((product) => {
-    setStore(prev => {
-      const exists = prev.products.some(p => p.id === product.id)
-      const products = exists
-        ? prev.products.map(p => (p.id === product.id ? { ...p, ...product } : p))
-        : [{
-            ...product,
-            id: product.id || `p${Date.now()}`,
-            status: product.status || 'Active',
-            createdDate: new Date().toISOString(),
-            createdBy: CURRENT_USER.name,
-          }, ...prev.products]
-      return {
-        ...prev,
-        products,
-        auditLog: [audit(exists ? 'PRODUCT_UPDATED' : 'PRODUCT_CREATED', `${product.sku} — ${product.name}`), ...prev.auditLog],
-      }
+  const recordSale = useCallback(async ({ items, discount, total, payment, cashReceived, changeDue }) => {
+    const created = await api.post('/sales', {
+      items: items.map(i => ({ productId: i.id, qty: i.quantity })),
+      discount,
+      payment,
+      cashReceived,
+      changeDue,
     })
-  }, [])
+    await refresh()
+    return mapTransaction(created)
+  }, [refresh])
 
-  const setProductStatus = useCallback((id, status) => {
-    setStore(prev => {
-      const product = prev.products.find(p => p.id === id)
-      if (!product) return prev
-      return {
-        ...prev,
-        products: prev.products.map(p => (p.id === id ? { ...p, status } : p)),
-        auditLog: [audit('PRODUCT_STATUS', `${product.sku} set to ${status}`), ...prev.auditLog],
-      }
-    })
-  }, [])
+  const refundTransaction = useCallback(async (txNo, reason) => {
+    const target = transactions.find(t => t.id === txNo)
+    if (!target) return 'Transaction not found.'
+    try {
+      await api.post(`/transactions/${target.dbId}/refund`, { reason })
+      await refresh()
+      return null
+    } catch (err) { return err.message }
+  }, [transactions, refresh])
 
-  const saveCounter = useCallback((counter) => {
-    setStore(prev => {
-      const existing = prev.counters.find(c => c.id === counter.id)
-      if (existing) {
-        // Cascade a rename to products assigned to this counter; historical
-        // movements and transactions keep the name they were recorded under.
-        const products = existing.name !== counter.name
-          ? prev.products.map(p => (p.counter === existing.name ? { ...p, counter: counter.name } : p))
-          : prev.products
-        return {
-          ...prev,
-          products,
-          counters: prev.counters.map(c => (c.id === counter.id ? { ...c, ...counter } : c)),
-          auditLog: [audit('COUNTER_UPDATED', `${counter.code} — ${counter.name}`), ...prev.auditLog],
-        }
-      }
-      return {
-        ...prev,
-        counters: [...prev.counters, { ...counter, id: counter.id || `c${Date.now()}`, status: counter.status || 'Active' }],
-        auditLog: [audit('COUNTER_CREATED', `${counter.code} — ${counter.name}`), ...prev.auditLog],
-      }
-    })
-  }, [])
-
-  const setCounterStatus = useCallback((id, status) => {
-    setStore(prev => {
-      const counter = prev.counters.find(c => c.id === id)
-      if (!counter) return prev
-      return {
-        ...prev,
-        counters: prev.counters.map(c => (c.id === id ? { ...c, status } : c)),
-        auditLog: [audit('COUNTER_STATUS', `${counter.code} set to ${status}`), ...prev.auditLog],
-      }
-    })
-  }, [])
-
-  const stockIn = useCallback(({ productId, qty, counter, refNo, remarks, date, attachmentName }) => {
-    setStore(prev => {
-      const product = prev.products.find(p => p.id === productId)
-      if (!product || qty <= 0) return prev
-      const balanceAfter = product.stock + qty
-      const movement = {
-        id: `m${Date.now()}`, no: nextDocNo(prev.movements, 'SI'), type: 'IN',
-        date: date || new Date().toISOString(), productId, sku: product.sku, productName: product.name,
-        qty, balanceAfter, refNo, remarks, attachmentName,
-        createdBy: CURRENT_USER.name, counter: counter || CURRENT_COUNTER,
-      }
-      return {
-        ...prev,
-        products: prev.products.map(p => (p.id === productId ? { ...p, stock: balanceAfter } : p)),
-        movements: [movement, ...prev.movements],
-        auditLog: [audit('STOCK_IN', `${movement.no}: +${qty} ${product.sku} (balance ${balanceAfter})`), ...prev.auditLog],
-      }
-    })
-  }, [])
-
-  const stockOut = useCallback(({ productId, qty, reason, remarks, date }) => {
-    // Validate against current state before queueing the update — updater
-    // functions run later, so they cannot return errors to the caller.
-    const current = store.products.find(p => p.id === productId)
-    if (!current || qty <= 0) return 'Select a product and enter a valid quantity.'
-    if (qty > current.stock) return 'Quantity Out cannot exceed Current Stock.'
-    setStore(prev => {
-      const product = prev.products.find(p => p.id === productId)
-      if (!product || qty > product.stock) return prev
-      const balanceAfter = product.stock - qty
-      const movement = {
-        id: `m${Date.now()}`, no: nextDocNo(prev.movements, 'SO'), type: 'OUT',
-        date: date || new Date().toISOString(), productId, sku: product.sku, productName: product.name,
-        qty, balanceAfter, reason, remarks,
-        createdBy: CURRENT_USER.name, counter: CURRENT_COUNTER,
-      }
-      return {
-        ...prev,
-        products: prev.products.map(p => (p.id === productId ? { ...p, stock: balanceAfter } : p)),
-        movements: [movement, ...prev.movements],
-        auditLog: [audit('STOCK_OUT', `${movement.no}: -${qty} ${product.sku} (${reason})`), ...prev.auditLog],
-      }
-    })
-    return null
-  }, [store.products])
-
-  const returnStock = useCallback(({ productId, qty, returnType, reason, remarks, date }) => {
-    // Transfer Out sends stock away from the counter (stock down); customer
-    // and counter returns come back in (stock up).
-    const current = store.products.find(p => p.id === productId)
-    if (!current || qty <= 0) return 'Select a product and enter a valid quantity.'
-    if (returnType === 'Transfer Out' && qty > current.stock) {
-      return 'Quantity Returned cannot exceed Current Stock for a Transfer Out.'
-    }
-    setStore(prev => {
-      const product = prev.products.find(p => p.id === productId)
-      if (!product) return prev
-      const delta = returnType === 'Transfer Out' ? -qty : qty
-      if (product.stock + delta < 0) return prev
-      const balanceAfter = product.stock + delta
-      const movement = {
-        id: `m${Date.now()}`, no: nextDocNo(prev.movements, 'RT'), type: 'RETURN',
-        date: date || new Date().toISOString(), productId, sku: product.sku, productName: product.name,
-        qty, balanceAfter, returnType, reason, remarks,
-        createdBy: CURRENT_USER.name, counter: CURRENT_COUNTER,
-      }
-      return {
-        ...prev,
-        products: prev.products.map(p => (p.id === productId ? { ...p, stock: balanceAfter } : p)),
-        movements: [movement, ...prev.movements],
-        auditLog: [audit('STOCK_RETURN', `${movement.no}: ${returnType} ${qty} ${product.sku}`), ...prev.auditLog],
-      }
-    })
-    return null
-  }, [store.products])
-
-  const recordSale = useCallback(({ items, subtotal, discount, total, payment, cashReceived, changeDue }) => {
-    // Build the transaction outside the updater so it can be returned to the
-    // caller (the updater itself runs asynchronously).
-    const tx = {
-      id: nextTxId(store.transactions),
-      dateTime: new Date().toISOString(),
-      status: 'Completed',
-      staff: CURRENT_USER.name, staffId: CURRENT_USER.id, counter: CURRENT_COUNTER,
-      payment, subtotal, discount, total, cashReceived, changeDue,
-      items: items.map(i => ({ id: i.id, sku: i.sku, name: i.name, qty: i.quantity, unitPrice: i.price })),
-    }
-    setStore(prev => {
-      const products = prev.products.map(p => {
-        const sold = items.find(i => i.id === p.id)
-        return sold ? { ...p, stock: Math.max(0, p.stock - sold.quantity) } : p
-      })
-      const saleMovements = items.map((i, idx) => {
-        const product = products.find(p => p.id === i.id)
-        return {
-          id: `m${Date.now()}-${idx}`, no: tx.id, type: 'SALE',
-          date: tx.dateTime, productId: i.id, sku: i.sku, productName: i.name,
-          qty: i.quantity, balanceAfter: product ? product.stock : 0,
-          reason: 'Sales Transaction', remarks: `Receipt ${tx.id}`,
-          createdBy: CURRENT_USER.name, counter: CURRENT_COUNTER,
-        }
-      })
-      return {
-        ...prev,
-        products,
-        transactions: [tx, ...prev.transactions],
-        movements: [...saleMovements, ...prev.movements],
-        auditLog: [audit('SALE_COMPLETED', `${tx.id}: ${payment} RM${total.toFixed(2)}`), ...prev.auditLog],
-      }
-    })
-    return tx
-  }, [store.transactions])
-
-  const refundTransaction = useCallback((txId, reason) => {
-    setStore(prev => {
-      const tx = prev.transactions.find(t => t.id === txId)
-      if (!tx || tx.status !== 'Completed') return prev
-      const refundDate = new Date().toISOString()
-      // Refunded quantities go back to inventory (SRS #F005).
-      const products = prev.products.map(p => {
-        const item = tx.items.find(i => i.id === p.id)
-        return item ? { ...p, stock: p.stock + item.qty } : p
-      })
-      const rtBase = parseInt(nextDocNo(prev.movements, 'RT').slice(3), 10)
-      const refundMovements = tx.items
-        .filter(i => prev.products.some(p => p.id === i.id))
-        .map((i, idx) => {
-          const product = products.find(p => p.id === i.id)
-          return {
-            id: `m${Date.now()}-${idx}`, no: `RT-${pad(rtBase + idx)}`, type: 'RETURN',
-            date: refundDate, productId: i.id, sku: i.sku, productName: i.name,
-            qty: i.qty, balanceAfter: product.stock,
-            returnType: 'Customer Return', reason: `Refund ${txId}: ${reason}`, remarks: '',
-            createdBy: CURRENT_USER.name, counter: CURRENT_COUNTER,
-          }
-        })
-      return {
-        ...prev,
-        products,
-        transactions: prev.transactions.map(t =>
-          t.id === txId
-            ? { ...t, status: 'Refunded', refund: { reason, date: refundDate, by: CURRENT_USER.name } }
-            : t
-        ),
-        movements: [...refundMovements, ...prev.movements],
-        auditLog: [audit('REFUND_ISSUED', `${txId}: ${reason} (RM${tx.total.toFixed(2)})`), ...prev.auditLog],
-      }
-    })
-  }, [])
-
-  const value = {
-    products: store.products,
-    transactions: store.transactions,
-    movements: store.movements,
-    counters: store.counters,
-    auditLog: store.auditLog,
-    saveProduct,
-    setProductStatus,
-    saveCounter,
-    setCounterStatus,
-    stockIn,
-    stockOut,
-    returnStock,
-    recordSale,
-    refundTransaction,
-  }
+  const value = useMemo(() => ({
+    products, transactions, movements, counters, auditLog, lookups,
+    loading, error, refresh,
+    saveProduct, setProductStatus, saveCounter, setCounterStatus,
+    stockIn, stockOut, returnStock, recordSale, refundTransaction,
+  }), [
+    products, transactions, movements, counters, auditLog, lookups, loading, error,
+    refresh, saveProduct, setProductStatus, saveCounter, setCounterStatus,
+    stockIn, stockOut, returnStock, recordSale, refundTransaction,
+  ])
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }

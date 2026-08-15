@@ -76,6 +76,7 @@ export default function Checkout() {
   const [promoApplied, setPromoApplied] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [completedTx, setCompletedTx] = useState(null)
+  const [saleError, setSaleError] = useState(null)
   const [cashReceived, setCashReceived] = useState('')
   const cashInputRef = useRef(null)
 
@@ -102,23 +103,27 @@ export default function Checkout() {
     })
   }, [])
 
-  const handleCompleteSale = () => {
+  const handleCompleteSale = async () => {
     if (selectedPayment === 'Cash' && !cashSufficient) return
 
     setProcessing(true)
-    setTimeout(() => {
-      const tx = recordSale({
+    setSaleError(null)
+    try {
+      // The server re-prices every line from the database and rejects the
+      // sale if stock ran out between adding to the cart and paying.
+      const tx = await recordSale({
         items: cart,
-        subtotal,
         discount,
-        total: grandTotal,
         payment: selectedPayment,
         cashReceived: selectedPayment === 'Cash' ? cashValue : undefined,
         changeDue: selectedPayment === 'Cash' ? changeDue : undefined,
       })
-      setProcessing(false)
       setCompletedTx(tx)
-    }, 1400)
+    } catch (err) {
+      setSaleError(err.message)
+    } finally {
+      setProcessing(false)
+    }
   }
 
   const handlePrintReceipt = async () => {
@@ -352,6 +357,13 @@ export default function Checkout() {
               <div className="flex justify-between items-center mb-4 p-3 bg-secondary-container rounded-xl">
                 <span className="text-body-md font-semibold text-secondary">Change to return:</span>
                 <span className="text-title-lg font-bold text-secondary">{fmtRM(changeDue)}</span>
+              </div>
+            )}
+
+            {saleError && (
+              <div className="flex items-start gap-2 mb-4 p-3 bg-error-container rounded-xl">
+                <span className="material-symbols-outlined text-error text-[20px] flex-shrink-0">error</span>
+                <p className="text-label-md font-mono text-on-error-container leading-snug">{saleError}</p>
               </div>
             )}
 

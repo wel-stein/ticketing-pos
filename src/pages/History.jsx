@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../context/StoreContext'
-import { STAFF_LIST } from '../data'
 import { fmtRM, fmtDate, fmtTime } from '../utils/format'
 import { buildReceiptHTML, printReceipt } from '../utils/receipt'
 import SideNav from '../components/SideNav'
@@ -155,7 +154,7 @@ function EmailModal({ tx, onClose }) {
 }
 
 export default function History() {
-  const { transactions, refundTransaction } = useStore()
+  const { transactions, refundTransaction, lookups } = useStore()
   const [selectedId, setSelectedId] = useState(transactions[0]?.id ?? null)
   const [filters, setFilters] = useState({ from: '', to: '', staff: '', type: '', orderId: '' })
   const [showMobileReceipt, setShowMobileReceipt] = useState(false)
@@ -168,7 +167,7 @@ export default function History() {
     return transactions.filter(tx => {
       const t = new Date(tx.dateTime).getTime()
       if (t < start || t > end) return false
-      if (filters.staff && tx.staffId !== filters.staff) return false
+      if (filters.staff && tx.staff !== filters.staff) return false
       if (filters.type && tx.status !== filters.type) return false
       if (filters.orderId && !tx.id.toLowerCase().includes(filters.orderId.toLowerCase())) return false
       return true
@@ -225,7 +224,9 @@ export default function History() {
               onChange={e => setFilters(f => ({ ...f, staff: e.target.value }))}
             >
               <option value="">All Staff</option>
-              {STAFF_LIST.map(s => <option key={s.id} value={s.id}>{s.name} ({s.id})</option>)}
+              {lookups.staff.map(s => (
+                <option key={s.staff_code} value={s.name}>{s.name} ({s.staff_code})</option>
+              ))}
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
